@@ -27,7 +27,8 @@
     "ssr"
   ],
   "scripts": {
-    "test": "playwright test"
+    "test": "playwright test",
+    "pack": "yarn pack --filename skeletone.tgz"
   },
   "devDependencies": {
     "@playwright/test": "1.64.0"

@@ -38,7 +38,7 @@ npm install skeletone
 ```
 
 ```js
-import 'skeletone' // bundlers that handle CSS imports
+import 'skeletone/skeletone.css' // bundlers that handle CSS imports
 ```
 
 Or use a `<link>` to `node_modules/skeletone/skeletone.css`, or to a CDN copy.
