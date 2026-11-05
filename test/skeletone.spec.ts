@@ -13,12 +13,16 @@ const style = (page: Page, sel: string, prop: string) =>
 const box = async (page: Page, sel: string) => (await page.locator(sel).boundingBox())!
 
 test.describe('skeletone', () => {
-  test('gives an empty heading a visible bar half the container wide', async ({ page }) => {
+  test('gives an empty heading a visible bar 40% of the container wide', async ({ page }) => {
     await mount(page, '<div data-skeleton style="width:400px"><h3 id="t"></h3></div>')
-    const b = await box(page, '#t')
-    expect(b.height).toBeGreaterThan(20)
-    expect(b.width).toBe(200)
+    expect((await box(page, '#t')).height).toBeGreaterThan(20)
     expect(await style(page, '#t', 'background-image')).toContain('gradient')
+    expect(await style(page, '#t', 'background-size')).toMatch(/^40% /)
+  })
+
+  test('draws empty-text bars 0.6 of a line thick', async ({ page }) => {
+    await mount(page, '<div data-skeleton><p id="p"></p></div>')
+    expect(await style(page, '#p', 'background-size')).toBe('100% 14.4px')
   })
 
   test('does nothing without the attribute or with data-skeleton="false"', async ({ page }) => {
@@ -36,18 +40,55 @@ test.describe('skeletone', () => {
 
   test('gives empty inline text a width so it shows up', async ({ page }) => {
     await mount(page, '<div data-skeleton><span id="s"></span></div>')
-    expect((await box(page, '#s')).width).toBe(80)
+    expect((await box(page, '#s')).width).toBe(64)
   })
 
-  test('draws n line bars for data-skeleton-lines, the last one shorter', async ({ page }) => {
-    await mount(page, '<div data-skeleton><p id="p" data-skeleton-lines="3"></p></div>')
+  test('draws three line bars for a bare data-skeleton-lines, the last one shorter', async ({ page }) => {
+    await mount(page, '<div data-skeleton><p id="p" data-skeleton-lines></p></div>')
     expect((await box(page, '#p')).height).toBe(72)
     expect(await style(page, '#p', 'background-size')).toMatch(/^60% /)
   })
 
-  test('accepts any line count through --skeleton-lines', async ({ page }) => {
-    await mount(page, '<div data-skeleton><p id="p" style="--skeleton-lines: 11"></p></div>')
-    expect((await box(page, '#p')).height).toBe(264)
+  test('takes the line count from --skeleton-lines on a data-skeleton-lines element', async ({ page }) => {
+    await mount(
+      page,
+      '<div data-skeleton><p id="a" class="long" data-skeleton-lines></p><p id="b" class="long"></p></div>',
+      '.long{--skeleton-lines: 11}',
+    )
+    expect((await box(page, '#a')).height).toBe(264)
+    expect((await box(page, '#b')).height).toBe(24)
+  })
+
+  test('draws text that is present as line bars that follow the real text', async ({ page }) => {
+    await mount(page, '<div data-skeleton><p id="p" class="bio">Placeholder bio text</p></div>', '.bio{background:blue}')
+    expect(await style(page, '#p', 'background-color')).toBe('rgba(0, 0, 0, 0)')
+    expect(await style(page, '#p', 'text-decoration-line')).toBe('line-through')
+    expect(await style(page, '#p', 'text-decoration-thickness')).toBe('14.4px')
+  })
+
+  test('sets the bar width of empty text with --skeleton-width', async ({ page }) => {
+    await mount(
+      page,
+      '<div data-skeleton style="width:400px"><h3 id="h" class="w"></h3><p id="p" class="w"></p><span id="s" class="w"></span></div>',
+      '.w{--skeleton-width: 30%}',
+    )
+    expect(await style(page, '#h', 'background-size')).toMatch(/^30% /)
+    expect(await style(page, '#p', 'background-size')).toMatch(/^30% /)
+    expect((await box(page, '#s')).width).toBe(120)
+  })
+
+  test('leaves a data-skeleton-ignore section as it is', async ({ page }) => {
+    await mount(
+      page,
+      '<div data-skeleton><header class="bar" data-skeleton-ignore><a id="a" class="back" href="#">Back</a><h3 id="h"></h3></header></div>',
+      '.back{color:rgb(255, 0, 0)}',
+    )
+    expect(await style(page, '#a', 'color')).toBe('rgb(255, 0, 0)')
+    expect(await style(page, '#a', '-webkit-text-fill-color')).toBe('rgb(255, 0, 0)')
+    expect(await style(page, '#a', 'background-color')).toBe('rgba(0, 0, 0, 0)')
+    expect(await style(page, '#a', 'text-decoration-line')).toBe('underline')
+    expect(await style(page, '#a', 'pointer-events')).toBe('auto')
+    expect(await style(page, '#h', 'background-image')).toBe('none')
   })
 
   test('fills sized shapes such as an avatar without changing their size', async ({ page }) => {

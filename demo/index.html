@@ -31,6 +31,13 @@
       .tag { padding: 2px 10px; border-radius: 99px; background: #e8f0ff; color: #2b5cd6; font-size: 0.8rem; }
       .btn { margin-top: 14px; padding: 8px 14px; border: 0; border-radius: 8px; background: #3b4763; color: #fff; }
       .dark .btn { background: #45537a; }
+      .detail { max-width: 640px; margin-top: 24px; }
+      .detail-head { padding: 12px 16px; border-bottom: 1px solid #e3e6ec; font-size: 0.85rem; }
+      .dark .detail-head { border-color: #2a3145; }
+      .detail-head a { color: #2b5cd6; }
+      .dark .detail-head a { color: #8fb0ff; }
+      .detail h2 { margin: 0 0 4px; }
+      .detail .tags { flex-wrap: wrap; padding: 0; list-style: none; }
     </style>
   </head>
   <body>
@@ -41,6 +48,18 @@
 
     <!-- The same template renders the skeleton (no data) and the loaded card. -->
     <div id="list" class="grid" data-skeleton aria-busy="true"></div>
+
+    <!-- A detail page: while loading it renders a placeholder record, so the lists and
+         paragraphs that come from data still exist. The header is not data, so it stays. -->
+    <article id="detail" class="card detail" data-skeleton aria-busy="true">
+      <header class="detail-head" data-skeleton-ignore><a href="#">← All opportunities</a></header>
+      <div class="body">
+        <h2 data-field="title"></h2>
+        <p class="meta"><span data-field="org"></span> · <time data-field="date"></time></p>
+        <p data-field="about"></p>
+        <ul class="tags" data-field="tags"></ul>
+      </div>
+    </article>
 
     <template id="card">
       <article class="card">
@@ -54,7 +73,7 @@
             </div>
           </div>
           <h3 class="title" data-field="title"></h3>
-          <p data-field="summary" data-skeleton-lines="3"></p>
+          <p data-field="summary" data-skeleton-lines></p>
           <div class="tags"><span class="tag" data-field="tag1"></span><span class="tag" data-field="tag2"></span></div>
           <button class="btn">Apply</button>
         </div>
@@ -70,6 +89,21 @@
         { org: 'Water Works', date: '20 Jan 2027', title: 'Clean Water Scholarship', tag1: 'SDG 6', tag2: 'Global',
           summary: 'Full tuition for engineering students working on water access in their communities.' },
       ]
+      const DETAIL = { title: 'Climate Fellowship', org: 'Green Futures', date: '12 Nov 2026',
+        about: 'A six-month fellowship for young climate leaders. Fellows get a mentor, a monthly stipend and a budget for a community project, then present their work at a final showcase in Nairobi.',
+        tags: ['SDG 13', 'Remote', 'Stipend', 'Mentoring'] }
+      const PLACEHOLDER = { title: 'xxxxxxxxxxxxxxxxx', org: 'xxxxxxxxxx', date: 'xxxxxxxxxx',
+        about: 'x'.repeat(140).replace(/(.{9})/g, '$1 '), tags: ['xxxxx', 'xxxxx', 'xxxxx'] }
+      const detail = document.getElementById('detail')
+      function renderDetail(d) {
+        for (const el of detail.querySelectorAll('[data-field]')) {
+          const v = d[el.dataset.field]
+          if (Array.isArray(v)) el.replaceChildren(...v.map((t) => Object.assign(document.createElement('li'), { className: 'tag', textContent: t })))
+          else el.textContent = v
+        }
+      }
+      renderDetail(PLACEHOLDER)
+
       const list = document.getElementById('list')
       const tpl = document.getElementById('card')
 
@@ -94,6 +128,9 @@
         render(loaded ? DATA : [null, null, null])
         list.dataset.skeleton = String(!loaded)
         list.setAttribute('aria-busy', String(!loaded))
+        renderDetail(loaded ? DETAIL : PLACEHOLDER)
+        detail.dataset.skeleton = String(!loaded)
+        detail.setAttribute('aria-busy', String(!loaded))
         document.getElementById('toggle').textContent = loaded ? 'Show skeleton' : 'Show loaded content'
       }
       document.getElementById('theme').onclick = (e) => {

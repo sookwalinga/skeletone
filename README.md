@@ -12,12 +12,12 @@ any framework.
   <article class="card">
     <img class="avatar" alt="" />
     <h3></h3>
-    <p data-skeleton-lines="3"></p>
+    <p data-skeleton-lines></p>
   </article>
 </div>
 ```
 
-About 1.3 KB gzipped.
+About 1.5 KB gzipped.
 
 ## Why
 
@@ -25,7 +25,8 @@ Most skeleton loaders are a second, hand-written copy of each screen. When the r
 component changes, the copy goes stale. skeletone has no copy to keep in step. While data
 loads, your component renders as usual with empty values. The CSS then:
 
-- turns each innermost element (text, images, icons, inputs) into a grey bar,
+- turns each innermost element (images, icons, inputs, buttons) into a grey block,
+- draws text as one bar per line, as long as the line,
 - gives empty text a text-height bar so it doesn't collapse,
 - leaves every container, card, border, gap and grid untouched.
 
@@ -73,14 +74,48 @@ the content.
 
 ### Paragraphs
 
-An empty element has no way to say how much text it will hold, so you tell it:
+An empty element has no way to say how much text it will hold, so you tell it. Mark it with
+`data-skeleton-lines` (three lines), and set `--skeleton-lines` for another count:
 
 ```html
-<p data-skeleton-lines="3"></p>              <!-- 1–8 -->
-<p style="--skeleton-lines: 12"></p>         <!-- any number -->
+<p data-skeleton-lines></p>                              <!-- 3 lines -->
+<p data-skeleton-lines class="bio"></p>                  <!-- .bio { --skeleton-lines: 6 } -->
 ```
 
 The last line is drawn shorter so the block reads as a paragraph.
+
+### Detail pages
+
+On a detail page, the structure comes from the data: lists come from `.map()`, sections from
+`{data.x && …}`. With no data, they render nothing, so there's nothing to draw. Render the
+page with a placeholder record instead. The text is never shown, only its shape, so
+placeholder text becomes bars that wrap like real text:
+
+```jsx
+const placeholder = {
+  title: 'x'.repeat(24),
+  about: 'xxxxxxxx '.repeat(30), // about three lines
+  tags: ['xxxxx', 'xxxxx', 'xxxxx'],
+}
+
+<main data-skeleton={isLoading} aria-busy={isLoading}>
+  <Opportunity opportunity={data ?? placeholder} />
+</main>
+```
+
+With React Query, pass the same object as `placeholderData`.
+
+### Keeping a section as it is
+
+`data-skeleton-ignore` leaves an element and everything inside it untouched and clickable.
+Use it for parts that don't depend on the data, such as a back link or a page header:
+
+```html
+<main data-skeleton aria-busy="true">
+  <header data-skeleton-ignore><a href="/">← All opportunities</a></header>
+  …
+</main>
+```
 
 ## Customise
 
@@ -90,10 +125,11 @@ All settings are CSS custom properties. Set them on the container or anywhere ab
 | -------------------------- | ---------------------------------------- | ---------------------------------- |
 | `--skeleton-color`         | 13% of the container's text colour       | Bar colour                         |
 | `--skeleton-radius`        | `0.25em`                                 | Bar corners (an element's own radius wins) |
-| `--skeleton-heading-width` | `50%`                                    | Maximum width of an empty heading  |
-| `--skeleton-inline-width`  | `5em`                                    | Width of empty inline text         |
+| `--skeleton-width`         | see the next two rows, else `100%`       | Bar width of empty text, on any element |
+| `--skeleton-heading-width` | `40%`                                    | Bar width of an empty heading      |
+| `--skeleton-inline-width`  | `4em`                                    | Width of empty inline text         |
 | `--skeleton-last-line`     | `60%`                                    | Width of a paragraph's last line   |
-| `--skeleton-lines`         | `1`                                      | Line count (see Paragraphs)        |
+| `--skeleton-lines`         | `3`                                      | Line count of a `data-skeleton-lines` element |
 
 Bars take their colour from the container's text colour, so dark mode works without any
 configuration.
@@ -105,9 +141,11 @@ The whole library is one stylesheet. Inside `[data-skeleton]`:
 1. Text is hidden with `-webkit-text-fill-color: transparent`, so it keeps its layout.
 2. Leaf elements, meaning elements with no element children (`:not(:has(*))`), plus whole
    SVG icons, get a background in the bar colour and a gentle pulse.
-3. Empty text elements get a `1lh` minimum height and a bar drawn as a gradient, so they
+3. Text elements that hold text get a strike-through 0.6 of a line thick instead, so each
+   wrapped line gets its own bar.
+4. Empty text elements get a `1lh` minimum height and a bar drawn as a gradient, so they
    look like a line of text rather than a solid block.
-4. The container ignores clicks and text selection.
+5. The container ignores clicks and text selection, except inside `data-skeleton-ignore`.
 
 ## Accessibility
 
@@ -125,10 +163,12 @@ Any browser with `:has()`, the `lh` unit and `color-mix()`: Chrome / Edge 111+, 
 ## Limitations
 
 - **Elements that render only when data exists** (`{data.tags && <Tags />}`) aren't in the
-  page while loading, so they get no bars. Render them unconditionally, or with empty
-  values, if they should appear in the skeleton.
+  page while loading, so they get no bars. Render with a placeholder record (see Detail
+  pages). If your app can't, skeletone can't help, since adding elements takes JavaScript.
 - **Text mixed with child elements** (`<p>By <a>Sam</a></p>`) is hidden, but only the child
   gets a bar.
+- **Whitespace-only elements** (`<p> </p>`) aren't `:empty`, so they get no bar. Render
+  them truly empty.
 - **Real images** inside a skeleton are painted over. That's intended, but it includes logos.
 
 ## Development

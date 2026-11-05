@@ -7,22 +7,28 @@
   pointer-events: none;
   user-select: none;
 }
+/* data-skeleton-ignore keeps a section (a back link, a page header) as it is. */
+[data-skeleton]:not([data-skeleton='false']) [data-skeleton-ignore] {
+  cursor: auto;
+  pointer-events: auto;
+  user-select: text;
+}
 
 /* Hide content, keep layout. Every descendant takes the container's colour so
    the bars are one tint, and that tint follows light/dark themes for free. */
-[data-skeleton]:not([data-skeleton='false']) * {
+[data-skeleton]:not([data-skeleton='false']) *:not([data-skeleton-ignore], [data-skeleton-ignore] *) {
   color: inherit !important;
   -webkit-text-fill-color: transparent;
   text-decoration-color: transparent;
   text-shadow: none;
 }
-[data-skeleton]:not([data-skeleton='false']) ::placeholder {
+[data-skeleton]:not([data-skeleton='false']) :not([data-skeleton-ignore], [data-skeleton-ignore] *)::placeholder {
   color: transparent;
 }
 
 /* Leaves (elements with no element children) and whole icons become bars. */
 [data-skeleton]:not([data-skeleton='false'])
-  :is(:not(:has(*)), svg):not(svg *, br, hr, wbr, script, style, template) {
+  :is(:not(:has(*)), svg):not(svg *, br, hr, wbr, script, style, template):not([data-skeleton-ignore], [data-skeleton-ignore] *) {
   min-height: 1lh;
   background: var(--_c);
   border-color: transparent;
@@ -30,59 +36,60 @@
 }
 @media (prefers-reduced-motion: no-preference) {
   [data-skeleton]:not([data-skeleton='false'])
-    :is(:not(:has(*)), svg):not(svg *, br, hr, wbr, script, style, template) {
+    :is(:not(:has(*)), svg):not(svg *, br, hr, wbr, script, style, template):not([data-skeleton-ignore], [data-skeleton-ignore] *) {
     animation: skeletone-pulse 1.5s ease-in-out infinite;
   }
 }
 /* Zero specificity, so a component's own radius (a round avatar) wins. */
 :where([data-skeleton]:not([data-skeleton='false']))
-  :where(:not(:has(*)), svg):where(:not(svg *)) {
+  :where(:not(:has(*)), svg):where(:not(svg *)):where(:not([data-skeleton-ignore], [data-skeleton-ignore] *)) {
   border-radius: var(--skeleton-radius, 0.25em);
 }
-[data-skeleton]:not([data-skeleton='false']) svg > * {
+[data-skeleton]:not([data-skeleton='false']) svg:not([data-skeleton-ignore], [data-skeleton-ignore] *) > * {
   visibility: hidden;
 }
 /* Paint over the image (or the broken-image icon when there is no src). */
-[data-skeleton]:not([data-skeleton='false']) img {
+[data-skeleton]:not([data-skeleton='false']) img:not([data-skeleton-ignore], [data-skeleton-ignore] *) {
   content: linear-gradient(transparent, transparent);
   object-position: -200vw 0;
 }
 
+/* Text that is present (placeholder data) gets a bar per line, as long as the
+   line: a thick strike-through. */
+[data-skeleton]:not([data-skeleton='false'])
+  :where(h1, h2, h3, h4, h5, h6, p, li, dt, dd, td, th, figcaption, blockquote, caption, legend,
+    summary, span, a, b, i, em, strong, small, time, code, cite, q, abbr, mark, label):not(:has(*), :empty):not([data-skeleton-ignore], [data-skeleton-ignore] *) {
+  background: none;
+  text-decoration-line: line-through;
+  text-decoration-color: var(--_c);
+  text-decoration-thickness: 0.6lh;
+}
 /* Empty text gets a text-height bar instead of a full line-height block. */
 [data-skeleton]:not([data-skeleton='false'])
-  :where(h1, h2, h3, h4, h5, h6, p, li, dt, dd, td, th, label, figcaption, blockquote, caption,
-    legend, summary, span, a, b, i, em, strong, small, time, code, cite, q, abbr, mark):empty {
-  background: linear-gradient(var(--_c) 0 0) 0 50% / 100% 0.7lh no-repeat;
+  :where(h1, h2, h3, h4, h5, h6, p, li, dt, dd, td, th, figcaption, blockquote, caption, legend,
+    summary, span, a, b, i, em, strong, small, time, code, cite, q, abbr, mark, label):empty:not([data-skeleton-ignore], [data-skeleton-ignore] *) {
+  background: linear-gradient(var(--_c) 0 0) 0 50% / var(--_w, var(--skeleton-width, 100%)) 0.6lh
+    no-repeat;
 }
 /* Empty inline text has no width of its own. */
 [data-skeleton]:not([data-skeleton='false'])
-  :where(span, a, b, i, em, strong, small, time, code, cite, q, abbr, mark, label):empty {
+  :where(span, a, b, i, em, strong, small, time, code, cite, q, abbr, mark, label):empty:not([data-skeleton-ignore], [data-skeleton-ignore] *) {
+  --_w: 100%;
   display: inline-block;
-  min-width: var(--skeleton-inline-width, 5em);
+  min-width: var(--skeleton-width, var(--skeleton-inline-width, 4em));
   vertical-align: middle;
 }
-[data-skeleton]:not([data-skeleton='false']) :where(h1, h2, h3, h4, h5, h6):empty {
-  max-width: var(--skeleton-heading-width, 50%);
+[data-skeleton]:not([data-skeleton='false']) :where(h1, h2, h3, h4, h5, h6):empty:not([data-skeleton-ignore], [data-skeleton-ignore] *) {
+  --_w: var(--skeleton-width, var(--skeleton-heading-width, 40%));
 }
 
-/* Paragraphs: data-skeleton-lines="1"–"8", or style="--skeleton-lines: n". */
-[data-skeleton-lines='2'] { --skeleton-lines: 2; }
-[data-skeleton-lines='3'] { --skeleton-lines: 3; }
-[data-skeleton-lines='4'] { --skeleton-lines: 4; }
-[data-skeleton-lines='5'] { --skeleton-lines: 5; }
-[data-skeleton-lines='6'] { --skeleton-lines: 6; }
-[data-skeleton-lines='7'] { --skeleton-lines: 7; }
-[data-skeleton-lines='8'] { --skeleton-lines: 8; }
-[data-skeleton]:not([data-skeleton='false']) :is([data-skeleton-lines], [style*='--skeleton-lines']) {
-  height: calc(var(--skeleton-lines, 1) * 1lh);
+/* Paragraphs: data-skeleton-lines, with the count in --skeleton-lines (default 3). */
+[data-skeleton]:not([data-skeleton='false']) [data-skeleton-lines]:not([data-skeleton-ignore], [data-skeleton-ignore] *) {
+  height: calc(var(--skeleton-lines, 3) * 1lh);
   background:
-    linear-gradient(var(--_c) 0 0) 0 calc(100% - 0.15lh) / var(--skeleton-last-line, 60%) 0.7lh
+    linear-gradient(var(--_c) 0 0) 0 calc(100% - 0.2lh) / var(--skeleton-last-line, 60%) 0.6lh
       no-repeat,
-    repeating-linear-gradient(
-        transparent 0 0.15lh,
-        var(--_c) 0.15lh 0.85lh,
-        transparent 0.85lh 1lh
-      )
+    repeating-linear-gradient(transparent 0 0.2lh, var(--_c) 0.2lh 0.8lh, transparent 0.8lh 1lh)
       0 0 / 100% calc(100% - 1lh) no-repeat;
 }
 
