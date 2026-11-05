@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>skeletone demo</title>
+    <link rel="stylesheet" href="../skeletone.css" />
+    <style>
+      body { font: 16px/1.5 system-ui, sans-serif; margin: 0; padding: 24px; background: #f6f7f9; color: #1d2433; }
+      body.dark { background: #12151c; color: #e6e8ee; }
+      .dark .card { background: #1b2030; border-color: #2a3145; }
+      .toolbar { display: flex; gap: 8px; margin-bottom: 16px; }
+      .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+      .card { background: #fff; border: 1px solid #e3e6ec; border-radius: 12px; overflow: hidden; }
+      .cover { display: block; width: 100%; height: 140px; object-fit: cover; }
+      .body { padding: 16px; }
+      .row { display: flex; align-items: center; gap: 10px; }
+      .avatar { width: 40px; height: 40px; border-radius: 50%; }
+      .title { margin: 12px 0 4px; font-size: 1.15rem; }
+      .meta { color: #6b7385; font-size: 0.85rem; }
+      .tags { display: flex; gap: 6px; margin-top: 12px; }
+      .tag { padding: 2px 10px; border-radius: 99px; background: #e8f0ff; color: #2b5cd6; font-size: 0.8rem; }
+      .btn { margin-top: 14px; padding: 8px 14px; border: 0; border-radius: 8px; background: #2b5cd6; color: #fff; }
+    </style>
+  </head>
+  <body>
+    <div class="toolbar">
+      <button id="toggle">Load data</button>
+      <button id="theme">Toggle dark</button>
+    </div>
+
+    <!-- The same template renders the skeleton (no data) and the loaded card. -->
+    <div id="list" class="grid" data-skeleton aria-busy="true"></div>
+
+    <template id="card">
+      <article class="card">
+        <img class="cover" alt="" />
+        <div class="body">
+          <div class="row">
+            <img class="avatar" alt="" />
+            <div>
+              <strong data-field="org"></strong><br />
+              <time class="meta" data-field="date"></time>
+            </div>
+          </div>
+          <h3 class="title" data-field="title"></h3>
+          <p data-field="summary" data-skeleton-lines="3"></p>
+          <div class="tags"><span class="tag" data-field="tag1"></span><span class="tag" data-field="tag2"></span></div>
+          <button class="btn">Apply</button>
+        </div>
+      </article>
+    </template>
+
+    <script>
+      const DATA = [
+        { org: 'Green Futures', date: '12 Nov 2026', title: 'Climate Fellowship', tag1: 'SDG 13', tag2: 'Remote',
+          summary: 'A six-month fellowship for young climate leaders, with mentoring, a stipend and a final showcase.' },
+        { org: 'Open Classroom', date: '3 Dec 2026', title: 'Teaching Internship', tag1: 'SDG 4', tag2: 'Kampala',
+          summary: 'Support teachers in rural schools.' },
+        { org: 'Water Works', date: '20 Jan 2027', title: 'Clean Water Scholarship', tag1: 'SDG 6', tag2: 'Global',
+          summary: 'Full tuition for engineering students working on water access in their communities.' },
+      ]
+      const list = document.getElementById('list')
+      const tpl = document.getElementById('card')
+
+      function render(items) {
+        list.replaceChildren(...items.map((item) => {
+          const card = tpl.content.cloneNode(true)
+          for (const el of card.querySelectorAll('[data-field]')) {
+            if (item) { el.textContent = item[el.dataset.field]; el.removeAttribute('data-skeleton-lines') }
+          }
+          if (item) {
+            card.querySelector('.cover').src = 'https://picsum.photos/seed/' + item.tag1.replace(' ', '') + '/600/280'
+            card.querySelector('.avatar').src = 'https://picsum.photos/seed/' + item.org.replace(' ', '') + '/80'
+          }
+          return card
+        }))
+      }
+
+      let loaded = false
+      render([null, null, null])
+      document.getElementById('toggle').onclick = () => {
+        loaded = !loaded
+        render(loaded ? DATA : [null, null, null])
+        list.dataset.skeleton = String(!loaded)
+        list.setAttribute('aria-busy', String(!loaded))
+      }
+      document.getElementById('theme').onclick = () => document.body.classList.toggle('dark')
+    </script>
+  </body>
+</html>

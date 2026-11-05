@@ -1,0 +1,91 @@
+/*! skeletone — skeleton loaders from your real markup. (c) 2026 Samuel Okwalinga, MIT */
+
+/* Skeleton mode: any element with data-skeleton (except data-skeleton="false"). */
+[data-skeleton]:not([data-skeleton='false']) {
+  --_c: var(--skeleton-color, color-mix(in srgb, currentColor 13%, transparent));
+  cursor: progress;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* Hide content, keep layout. Every descendant takes the container's colour so
+   the bars are one tint, and that tint follows light/dark themes for free. */
+[data-skeleton]:not([data-skeleton='false']) * {
+  color: inherit !important;
+  -webkit-text-fill-color: transparent;
+  text-decoration-color: transparent;
+  text-shadow: none;
+}
+[data-skeleton]:not([data-skeleton='false']) ::placeholder {
+  color: transparent;
+}
+
+/* Leaves (elements with no element children) and whole icons become bars. */
+[data-skeleton]:not([data-skeleton='false'])
+  :is(:not(:has(*)), svg):not(svg *, br, hr, wbr, script, style, template) {
+  min-height: 1lh;
+  background: var(--_c);
+  border-color: transparent;
+  box-shadow: none;
+}
+@media (prefers-reduced-motion: no-preference) {
+  [data-skeleton]:not([data-skeleton='false'])
+    :is(:not(:has(*)), svg):not(svg *, br, hr, wbr, script, style, template) {
+    animation: skeletone-pulse 1.5s ease-in-out infinite;
+  }
+}
+/* Zero specificity, so a component's own radius (a round avatar) wins. */
+:where([data-skeleton]:not([data-skeleton='false']))
+  :where(:not(:has(*)), svg):where(:not(svg *)) {
+  border-radius: var(--skeleton-radius, 0.25em);
+}
+[data-skeleton]:not([data-skeleton='false']) svg > * {
+  visibility: hidden;
+}
+/* Paint over the image (or the broken-image icon when there is no src). */
+[data-skeleton]:not([data-skeleton='false']) img {
+  content: linear-gradient(transparent, transparent);
+  object-position: -200vw 0;
+}
+
+/* Empty text gets a text-height bar instead of a full line-height block. */
+[data-skeleton]:not([data-skeleton='false'])
+  :where(h1, h2, h3, h4, h5, h6, p, li, dt, dd, td, th, label, figcaption, blockquote, caption,
+    legend, summary, span, a, b, i, em, strong, small, time, code, cite, q, abbr, mark):empty {
+  background: linear-gradient(var(--_c) 0 0) 0 50% / 100% 0.7lh no-repeat;
+}
+/* Empty inline text has no width of its own. */
+[data-skeleton]:not([data-skeleton='false'])
+  :where(span, a, b, i, em, strong, small, time, code, cite, q, abbr, mark, label):empty {
+  display: inline-block;
+  min-width: var(--skeleton-inline-width, 5em);
+  vertical-align: middle;
+}
+[data-skeleton]:not([data-skeleton='false']) :where(h1, h2, h3, h4, h5, h6):empty {
+  max-width: var(--skeleton-heading-width, 50%);
+}
+
+/* Paragraphs: data-skeleton-lines="1"–"8", or style="--skeleton-lines: n". */
+[data-skeleton-lines='2'] { --skeleton-lines: 2; }
+[data-skeleton-lines='3'] { --skeleton-lines: 3; }
+[data-skeleton-lines='4'] { --skeleton-lines: 4; }
+[data-skeleton-lines='5'] { --skeleton-lines: 5; }
+[data-skeleton-lines='6'] { --skeleton-lines: 6; }
+[data-skeleton-lines='7'] { --skeleton-lines: 7; }
+[data-skeleton-lines='8'] { --skeleton-lines: 8; }
+[data-skeleton]:not([data-skeleton='false']) :is([data-skeleton-lines], [style*='--skeleton-lines']) {
+  height: calc(var(--skeleton-lines, 1) * 1lh);
+  background:
+    linear-gradient(var(--_c) 0 0) 0 calc(100% - 0.15lh) / var(--skeleton-last-line, 60%) 0.7lh
+      no-repeat,
+    repeating-linear-gradient(
+        transparent 0 0.15lh,
+        var(--_c) 0.15lh 0.85lh,
+        transparent 0.85lh 1lh
+      )
+      0 0 / 100% calc(100% - 1lh) no-repeat;
+}
+
+@keyframes skeletone-pulse {
+  50% { opacity: 0.55; }
+}
