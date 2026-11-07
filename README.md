@@ -84,12 +84,32 @@ An empty element has no way to say how much text it will hold, so you tell it. M
 
 The last line is drawn shorter so the block reads as a paragraph.
 
+### Lists
+
+A list mapped from no data renders as an empty `<ul>` or `<ol>`. skeletone draws it as three
+rows, and `--skeleton-lines` sets another count. Nothing to configure, as long as the list
+element itself renders without data:
+
+```jsx
+<ul className="steps">{steps?.map((s) => <li key={s.id}>{s.name}</li>)}</ul>  {/* 3 rows */}
+```
+
+The rows are drawn as lines of text, which suits a vertical list. A horizontal list of chips
+looks better with a placeholder record (see the next section).
+
 ### Detail pages
 
-On a detail page, the structure comes from the data: lists come from `.map()`, sections from
-`{data.x && …}`. With no data, they render nothing, so there's nothing to draw. Render the
-page with a placeholder record instead. The text is never shown, only its shape, so
-placeholder text becomes bars that wrap like real text:
+On a detail page, the structure comes from the data. skeletone can only draw elements that
+are in the page, so keep wrappers outside your conditions where you can:
+
+```jsx
+<ul className="tags">{data.tags?.map(…)}</ul>   // drawn while loading
+{data.tags && <ul className="tags">…</ul>}      // not in the page, so nothing to draw
+```
+
+When a section can't render without data, render the page with a placeholder record
+instead. The text is never shown, only its shape, so placeholder text becomes bars that
+wrap like real text:
 
 ```jsx
 const placeholder = {
@@ -141,7 +161,7 @@ All settings are CSS custom properties. Set them on the container or anywhere ab
 | `--skeleton-heading-width` | `40%`                                    | Bar width of an empty heading      |
 | `--skeleton-inline-width`  | `4em`                                    | Width of empty inline text         |
 | `--skeleton-last-line`     | `60%`                                    | Width of a paragraph's last line   |
-| `--skeleton-lines`         | `3`                                      | Line count of a `data-skeleton-lines` element |
+| `--skeleton-lines`         | `3`                                      | Line count of a `data-skeleton-lines` element or an empty list |
 
 Bars take their colour from the container's text colour, so dark mode works without any
 configuration.
@@ -159,7 +179,9 @@ The whole library is one stylesheet. Inside `[data-skeleton]`:
 4. Empty text elements get a `1lh` minimum height and a bar drawn as a gradient, so they
    look like a line of text rather than a solid block. An element's own `min-height` wins,
    so a 44px button stays 44px.
-5. The container ignores clicks and text selection, except inside `data-skeleton-ignore`.
+5. `data-skeleton-lines` elements and empty lists get a height of `--skeleton-lines` lines,
+   with the lines drawn as gradients.
+6. The container ignores clicks and text selection, except inside `data-skeleton-ignore`.
 
 ## Accessibility
 
@@ -178,8 +200,9 @@ Any browser with `:has()`, the `lh` unit and `color-mix()`: Chrome / Edge 111+, 
 ## Limitations
 
 - **Elements that render only when data exists** (`{data.tags && <Tags />}`) aren't in the
-  page while loading, so they get no bars. Render with a placeholder record (see Detail
-  pages). If your app can't, skeletone can't help, since adding elements takes JavaScript.
+  page while loading, so they get no bars. Move the wrapper outside the condition, or render
+  with a placeholder record (see Detail pages). Adding elements takes JavaScript, so a
+  stylesheet can't create them.
 - **Text mixed with child elements** (`<p>By <a>Sam</a></p>`) is hidden, but only the child
   gets a bar.
 - **Whitespace-only elements** (`<p> </p>`) aren't `:empty`, so they get no bar. Render

@@ -59,6 +59,17 @@ test.describe('skeletone', () => {
     expect((await box(page, '#b')).height).toBe(24)
   })
 
+  test('draws an empty list as rows, so a list mapped from no data still shows', async ({ page }) => {
+    await mount(
+      page,
+      '<div data-skeleton><ul id="u" class="list"></ul><ol id="o" class="list long"></ol></div>',
+      '.list{margin:0;padding:0}.long{--skeleton-lines: 5}',
+    )
+    expect((await box(page, '#u')).height).toBe(72)
+    expect(await style(page, '#u', 'background-size')).toMatch(/^60% /)
+    expect((await box(page, '#o')).height).toBe(120)
+  })
+
   test('draws text that is present as line bars that follow the real text', async ({ page }) => {
     await mount(page, '<div data-skeleton><p id="p" class="bio">Placeholder bio text</p></div>', '.bio{background:blue}')
     expect(await style(page, '#p', 'background-color')).toBe('rgba(0, 0, 0, 0)')

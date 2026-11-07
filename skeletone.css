@@ -85,8 +85,10 @@
   --_w: var(--skeleton-width, var(--skeleton-heading-width, 40%));
 }
 
-/* Paragraphs: data-skeleton-lines, with the count in --skeleton-lines (default 3). */
-[data-skeleton]:not([data-skeleton='false']) [data-skeleton-lines]:not([data-skeleton-ignore], [data-skeleton-ignore] *) {
+/* Paragraphs (data-skeleton-lines) and empty lists, with the count in
+   --skeleton-lines (default 3). */
+[data-skeleton]:not([data-skeleton='false'])
+  :is([data-skeleton-lines], :where(ul, ol):empty):not([data-skeleton-ignore], [data-skeleton-ignore] *) {
   height: calc(var(--skeleton-lines, 3) * 1lh);
   background:
     linear-gradient(var(--_c) 0 0) 0 calc(100% - 0.2lh) / var(--skeleton-last-line, 60%) 0.6lh
