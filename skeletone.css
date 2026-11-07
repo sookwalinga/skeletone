@@ -29,20 +29,22 @@
 /* Leaves (elements with no element children) and whole icons become bars. */
 [data-skeleton]:not([data-skeleton='false'])
   :is(:not(:has(*)), svg):not(svg *, br, hr, wbr, script, style, template):not([data-skeleton-ignore], [data-skeleton-ignore] *) {
-  min-height: 1lh;
   background: var(--_c);
   border-color: transparent;
   box-shadow: none;
 }
+/* Bars fade in after 150ms, so a fast load never flashes them. */
 @media (prefers-reduced-motion: no-preference) {
   [data-skeleton]:not([data-skeleton='false'])
     :is(:not(:has(*)), svg):not(svg *, br, hr, wbr, script, style, template):not([data-skeleton-ignore], [data-skeleton-ignore] *) {
-    animation: skeletone-pulse 1.5s ease-in-out infinite;
+    animation: skeletone-pulse 1.5s ease-in-out infinite, skeletone-in 0.2s 0.15s backwards;
   }
 }
-/* Zero specificity, so a component's own radius (a round avatar) wins. */
+/* Zero specificity, so a component's own radius (a round avatar) and
+   min-height (a touch-target button) win. */
 :where([data-skeleton]:not([data-skeleton='false']))
-  :where(:not(:has(*)), svg):where(:not(svg *)):where(:not([data-skeleton-ignore], [data-skeleton-ignore] *)) {
+  :where(:not(:has(*)), svg):where(:not(svg *, br, hr, wbr, script, style, template)):where(:not([data-skeleton-ignore], [data-skeleton-ignore] *)) {
+  min-height: 1lh;
   border-radius: var(--skeleton-radius, 0.25em);
 }
 [data-skeleton]:not([data-skeleton='false']) svg:not([data-skeleton-ignore], [data-skeleton-ignore] *) > * {
@@ -95,4 +97,7 @@
 
 @keyframes skeletone-pulse {
   50% { opacity: 0.55; }
+}
+@keyframes skeletone-in {
+  from { opacity: 0; }
 }

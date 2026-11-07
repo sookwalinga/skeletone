@@ -152,11 +152,13 @@ The whole library is one stylesheet. Inside `[data-skeleton]`:
 
 1. Text is hidden with `-webkit-text-fill-color: transparent`, so it keeps its layout.
 2. Leaf elements, meaning elements with no element children (`:not(:has(*))`), plus whole
-   SVG icons, get a background in the bar colour and a gentle pulse.
+   SVG icons, get a background in the bar colour and a gentle pulse. The bars fade in after
+   150ms, so a load that finishes sooner never flashes them.
 3. Text elements that hold text get a strike-through 0.6 of a line thick instead, so each
    wrapped line gets its own bar.
 4. Empty text elements get a `1lh` minimum height and a bar drawn as a gradient, so they
-   look like a line of text rather than a solid block.
+   look like a line of text rather than a solid block. An element's own `min-height` wins,
+   so a 44px button stays 44px.
 5. The container ignores clicks and text selection, except inside `data-skeleton-ignore`.
 
 ## Accessibility
@@ -165,7 +167,8 @@ The whole library is one stylesheet. Inside `[data-skeleton]`:
   real content.
 - Add `inert` too if the skeleton holds focusable elements. CSS can't remove them from the
   tab order.
-- The pulse stops when the user asks for reduced motion.
+- The pulse and the fade-in stop when the user asks for reduced motion. The bars then show
+  at once.
 
 ## Browser support
 
@@ -181,6 +184,8 @@ Any browser with `:has()`, the `lh` unit and `color-mix()`: Chrome / Edge 111+, 
   gets a bar.
 - **Whitespace-only elements** (`<p> </p>`) aren't `:empty`, so they get no bar. Render
   them truly empty.
+- **Empty decorative elements** (a 1px divider `<div>`, an icon-font `<i>`) are leaves too,
+  so they become bars at least a line tall. Mark them `data-skeleton-ignore`.
 - **Real images** inside a skeleton are painted over. That's intended, but it includes logos.
 
 ## Development

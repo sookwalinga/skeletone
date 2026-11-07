@@ -102,6 +102,16 @@ test.describe('skeletone', () => {
     expect(await style(page, '#i', 'border-radius')).toBe('50%')
   })
 
+  test("keeps a component's own min-height, such as a touch-target button", async ({ page }) => {
+    await mount(page, '<div data-skeleton><button id="b" class="btn">Save</button></div>', '.btn{min-height:44px}')
+    expect((await box(page, '#b')).height).toBe(44)
+  })
+
+  test('leaves a rule line its own height', async ({ page }) => {
+    await mount(page, '<div data-skeleton><hr id="r" class="rule"></div>', '.rule{height:0;border:0;border-top:1px solid}')
+    expect((await box(page, '#r')).height).toBe(1)
+  })
+
   test('greys an icon as one block and hides its paths', async ({ page }) => {
     await mount(
       page,
@@ -129,6 +139,23 @@ test.describe('skeletone', () => {
   test('blocks clicks while loading', async ({ page }) => {
     await mount(page, '<div data-skeleton><button id="b">Go</button></div>')
     expect(await style(page, '[data-skeleton]', 'pointer-events')).toBe('none')
+  })
+
+  test('waits before showing bars, so a fast load never flashes', async ({ page }) => {
+    await mount(page, '<div data-skeleton><h3 id="t"></h3><p id="p">Placeholder</p></div>')
+    const opacityAt = (sel: string, ms: number) =>
+      page.locator(sel).evaluate((el, t) => {
+        for (const a of el.getAnimations()) {
+          a.pause()
+          a.currentTime = (a as CSSAnimation).animationName === 'skeletone-in' ? t : 0
+        }
+        return getComputedStyle(el).opacity
+      }, ms)
+    for (const sel of ['#t', '#p']) {
+      expect(await opacityAt(sel, 0)).toBe('0')
+      expect(await opacityAt(sel, 100)).toBe('0')
+      expect(await opacityAt(sel, 1000)).toBe('1')
+    }
   })
 
   test('stops the pulse for reduced motion', async ({ page }) => {
