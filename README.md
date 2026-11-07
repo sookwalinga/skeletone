@@ -105,6 +105,18 @@ const placeholder = {
 
 With React Query, pass the same object as `placeholderData`.
 
+The record only has to say how many items there are. It doesn't need text. Empty values get
+the default bars, and you set lengths where the defaults are wrong:
+
+```jsx
+const placeholder = { title: '', about: '', tags: ['', '', ''] }
+
+<h1 className="title"></h1>              {/* .title { --skeleton-width: 70% } */}
+<p data-skeleton-lines className="about"></p> {/* .about { --skeleton-lines: 5 } */}
+```
+
+Use placeholder text for zero configuration, or empty values to control lengths exactly.
+
 ### Keeping a section as it is
 
 `data-skeleton-ignore` leaves an element and everything inside it untouched and clickable.
