@@ -46,7 +46,9 @@
       <button id="theme" type="button">Switch to dark mode</button>
     </div>
 
-    <!-- The same template renders the skeleton (no data) and the loaded card. -->
+    <!-- The same template renders the skeleton (no data) and the loaded card. The status
+         message sits outside the inert list, so screen readers announce it. -->
+    <span id="status" role="status" class="skeletone-status">Loading opportunities</span>
     <div id="list" class="grid" data-skeleton inert></div>
 
     <!-- A detail page: while loading it renders a placeholder record, so the lists and
@@ -128,6 +130,7 @@
         render(loaded ? DATA : [null, null, null])
         list.dataset.skeleton = String(!loaded)
         list.inert = !loaded
+        document.getElementById('status').hidden = loaded
         renderDetail(loaded ? DETAIL : PLACEHOLDER)
         detail.dataset.skeleton = String(!loaded)
         detail.querySelector('.body').inert = !loaded

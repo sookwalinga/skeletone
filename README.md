@@ -47,7 +47,8 @@ Or use a `<link>` to `node_modules/skeletone/skeletone.css`, or to a CDN copy.
 
 The framework helpers are optional, and each is a separate import. A React app bundles only
 `skeletone/react`, never the Vue or Svelte code. Installing skeletone doesn't install any
-framework.
+framework. Each helper ships as an ES module and as CommonJS, so Jest loads it without any
+transform config.
 
 ## Usage
 
@@ -72,15 +73,48 @@ import { skeleton, Skeleton } from 'skeletone/react'
 onto any element, or onto a component that passes props to its element, such as an MUI
 `Box` or `Grid`. It adds no element of its own. Called with no argument, it's on.
 
-`<Skeleton>` is a `<div>` in skeleton mode, for when there's no element to spread onto. Its
-`loading` prop defaults to `true`, and `count` repeats the children while loading, so a list
-needs one empty record instead of a placeholder array:
+`<Skeleton>` renders an element in skeleton mode, for when there's no element to spread
+onto. `count` repeats the children while loading, so a list needs one empty record instead
+of a placeholder array, and `label` tells screen readers what's loading:
 
 ```jsx
-<Skeleton count={6}>
+<Skeleton label="Loading opportunities" count={6}>
   <OpportunityCard opportunity={EMPTY_OPPORTUNITY} />
 </Skeleton>
 ```
+
+renders, while loading:
+
+```html
+<span role="status" class="skeletone-status">Loading opportunities</span>
+<div data-skeleton inert>…6 cards…</div>
+```
+
+| Prop      | Default | What it does                                                               |
+| --------- | ------- | -------------------------------------------------------------------------- |
+| `loading` | `true`  | Skeleton mode on or off                                                    |
+| `count`   | `1`     | Renders the children this many times while loading                         |
+| `label`   | none    | While loading, a hidden `role="status"` message just before the element    |
+| `as`      | `'div'` | The element or component to render                                         |
+
+Other props pass through to the element. With `as`, a table or list can repeat its rows,
+and a component such as MUI's `TableBody` or `Grid` takes the attributes without an extra
+wrapper:
+
+```jsx
+<table>
+  <thead>…</thead>
+  <Skeleton as="tbody" count={5}>
+    <RoleRow role={PLACEHOLDER_ROLE} />
+  </Skeleton>
+</table>
+
+<Skeleton as={TableBody} count={5} sx={{ minHeight: 200 }}>…</Skeleton>
+```
+
+`label` adds a `<span>` beside the element, and a `<span>` isn't allowed beside a `<tbody>`
+or an `<li>`. For table and list rows, put the message outside the table or list yourself
+(see Accessibility).
 
 **Vue**
 
@@ -95,7 +129,8 @@ import { vSkeleton } from 'skeletone/vue'
 ```
 
 Outside `<script setup>`, register it with `app.directive('skeleton', vSkeleton)`.
-`v-skeleton` with no value is on.
+`v-skeleton` with no value is on. For a loading message, add a `.skeletone-status` span
+(see Accessibility).
 
 **Svelte**
 
@@ -104,6 +139,7 @@ Outside `<script setup>`, register it with `app.directive('skeleton', vSkeleton)
   import { skeleton } from 'skeletone/svelte'
 </script>
 
+{#if loading}<span role="status" class="skeletone-status">Loading articles</span>{/if}
 <section {...skeleton(loading)}>…</section>
 ```
 
@@ -155,13 +191,16 @@ are in the page, so keep wrappers outside your conditions where you can:
 
 When a section can't render without data, render the page with a placeholder record
 instead. The text is never shown, only its shape, so placeholder text becomes bars that
-wrap like real text:
+wrap like real text. `text(length)` from `skeletone/text` makes it: words of x's, about
+`length` characters long. It works with any framework.
 
 ```jsx
+import { text } from 'skeletone/text'
+
 const placeholder = {
-  title: 'x'.repeat(24),
-  about: 'xxxxxxxx '.repeat(30), // about three lines
-  tags: ['xxxxx', 'xxxxx', 'xxxxx'],
+  title: text(40),  // about one line
+  about: text(320), // wraps over several lines
+  tags: [text(5), text(5), text(5)],
 }
 
 <main {...skeleton(isLoading)}>
@@ -237,7 +276,15 @@ The whole library is one stylesheet. Inside `[data-skeleton]`:
 - Put `inert` on the container while it loads (the helpers do this for you). It removes
   the skeleton from the tab order and hides it from screen readers, so they don't read out
   placeholder text. CSS can do neither. `aria-busy` isn't needed on the same element: an inert element isn't announced.
-- To announce loading, put a `role="status"` message outside the inert part.
+- To announce loading, put a `role="status"` message outside the inert part. In React,
+  `<Skeleton label="Loading articles">` renders one. Elsewhere, write it yourself and give
+  it the `skeletone-status` class, which hides it on screen but not from screen readers.
+  Render it only while loading:
+
+  ```html
+  <span role="status" class="skeletone-status">Loading articles</span>
+  <section data-skeleton inert>…</section>
+  ```
 - The pulse and the fade-in stop when the user asks for reduced motion. The bars then show
   at once.
 
@@ -259,8 +306,8 @@ Any browser with `:has()`, the `lh` unit and `color-mix()`: Chrome / Edge 111+, 
 - **Empty decorative elements** (a 1px divider `<div>`, an icon-font `<i>`) are leaves too,
   so they become bars at least a line tall. Mark them `data-skeleton-ignore`.
 - **Real images** inside a skeleton are painted over. That's intended, but it includes logos.
-- **The helpers are ES modules only.** Bundlers, Vitest and Node handle them. Jest needs
-  `skeletone` added to `transformIgnorePatterns`.
+- **`label` needs a place where a `<span>` is allowed.** With `as="tbody"`, `"tr"` or
+  `"li"`, put a `.skeletone-status` message outside the table or list instead.
 
 ## Development
 

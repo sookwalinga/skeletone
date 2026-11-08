@@ -169,6 +169,19 @@ test.describe('skeletone', () => {
     }
   })
 
+  test('.skeletone-status hides a loading message on screen but not from screen readers', async ({ page }) => {
+    await mount(
+      page,
+      `<span role="status" class="skeletone-status">Loading articles</span>
+       <div data-skeleton inert><h3 id="t" class="title">Placeholder title</h3></div>`,
+      '.title{margin:0}',
+    )
+    const status = await box(page, '.skeletone-status')
+    expect([status.width, status.height]).toEqual([1, 1])
+    expect((await box(page, '#t')).y).toBe(0)
+    expect(await page.locator('body').ariaSnapshot()).toContain('- status: Loading articles')
+  })
+
   test('stops the pulse for reduced motion', async ({ page }) => {
     await page.emulateMedia({ reducedMotion: 'reduce' })
     await mount(page, '<div data-skeleton><h3 id="t"></h3></div>')

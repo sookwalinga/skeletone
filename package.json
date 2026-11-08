@@ -11,25 +11,39 @@
     "./skeletone.css": "./skeletone.css",
     "./react": {
       "types": "./react.d.mts",
-      "default": "./react.mjs"
+      "import": "./react.mjs",
+      "require": "./react.cjs"
     },
     "./vue": {
       "types": "./vue.d.mts",
-      "default": "./vue.mjs"
+      "import": "./vue.mjs",
+      "require": "./vue.cjs"
     },
     "./svelte": {
       "types": "./svelte.d.mts",
-      "default": "./svelte.mjs"
+      "import": "./svelte.mjs",
+      "require": "./svelte.cjs"
+    },
+    "./text": {
+      "types": "./text.d.mts",
+      "import": "./text.mjs",
+      "require": "./text.cjs"
     }
   },
   "files": [
     "skeletone.css",
     "react.mjs",
+    "react.cjs",
     "react.d.mts",
     "vue.mjs",
+    "vue.cjs",
     "vue.d.mts",
     "svelte.mjs",
-    "svelte.d.mts"
+    "svelte.cjs",
+    "svelte.d.mts",
+    "text.mjs",
+    "text.cjs",
+    "text.d.mts"
   ],
   "sideEffects": [
     "*.css"

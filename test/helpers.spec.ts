@@ -1,6 +1,7 @@
 import { expect, test, type Page } from '@playwright/test'
 import { build, type Plugin } from 'esbuild'
 import fs from 'node:fs'
+import { createRequire } from 'node:module'
 import path from 'node:path'
 import { compile } from 'svelte/compiler'
 
@@ -79,6 +80,24 @@ async function serverThenClient(page: Page, server: string, client: string, alia
   expect(problems).toEqual([])
 }
 
+// Server-renders a React app that defines App, hydrates it, and returns any warnings or errors.
+async function reactServerThenClient(page: Page, app: string) {
+  const problems: string[] = []
+  page.on('console', (m) => ['error', 'warning'].includes(m.type()) && problems.push(m.text()))
+  page.on('pageerror', (e) => problems.push(String(e)))
+  const html = await serverRender(`${app}
+    import { renderToString } from 'react-dom/server'
+    export const html = renderToString(h(App))`)
+  await page.setContent(`<!doctype html><style>body{font:16px/1.5 sans-serif;margin:0}</style><div id="root">${html}</div>`)
+  await page.addStyleTag({ path: CSS })
+  await page.addScriptTag({
+    content: (await bundle(`${app}
+      import { hydrateRoot } from 'react-dom/client'
+      hydrateRoot(document.getElementById('root'), h(App))`)).code,
+  })
+  return problems
+}
+
 async function expectSkeleton(page: Page, on: boolean) {
   await expect
     .poll(() => page.locator('#s').evaluate((el) => [el.hasAttribute('data-skeleton'), el.inert]))
@@ -152,6 +171,119 @@ test.describe('framework helpers', () => {
     expect(await page.locator('#s').evaluate((el) => [el.hasAttribute('data-skeleton'), el.inert])).toEqual([false, false])
   })
 
+  test('react: <Skeleton label> announces loading from outside the inert element, only while loading', async ({ page }) => {
+    const problems = await reactServerThenClient(
+      page,
+      `import { createElement as h, useState } from 'react'
+       import { Skeleton } from 'skeletone/react'
+       function App() {
+         const [loading, setLoading] = useState(true)
+         globalThis.setLoading = setLoading
+         return h('main', null,
+           h(Skeleton, { id: 's', loading, label: 'Loading articles', count: 2 }, h('p', { className: 'row' }, 'Placeholder')),
+           h(Skeleton, { id: 'u', loading }, h('p', { className: 'row' })))
+       }`,
+    )
+    const status = page.getByRole('status')
+    await expect(status).toHaveCount(1)
+    await expect(status).toHaveText('Loading articles')
+    expect(await status.evaluate((el) => [el.className, el.closest('[inert]'), el.nextElementSibling!.id])).toEqual([
+      'skeletone-status',
+      null,
+      's',
+    ])
+    expect(await page.locator('#root').ariaSnapshot()).toContain('- status: Loading articles')
+    expect((await page.locator('#s .row').first().boundingBox())!.y).toBe(16)
+
+    await page.evaluate(() => (window as any).setLoading(false))
+    await expect(status).toHaveCount(0)
+    await expect(page.locator('#s .row')).toHaveCount(1)
+    expect(problems).toEqual([])
+  })
+
+  test('react: <Skeleton as> renders a table body, or a component with its own props', async ({ page }) => {
+    const problems = await reactServerThenClient(
+      page,
+      `import { createElement as h, useState } from 'react'
+       import { Skeleton } from 'skeletone/react'
+       const TableBody = ({ sx, ...props }) => h('tbody', { ...props, 'data-sx': sx.color })
+       function App() {
+         const [loading, setLoading] = useState(true)
+         globalThis.setLoading = setLoading
+         const row = h('tr', null, h('td', null, h('span', { className: 'cell' })))
+         return h('table', null,
+           h(Skeleton, { as: 'tbody', id: 's', loading, count: 3 }, row),
+           h(Skeleton, { as: TableBody, id: 'c', className: 'rows', sx: { color: 'red' }, loading, count: 2 }, row))
+       }`,
+    )
+    await expect(page.locator('tbody')).toHaveCount(2)
+    await expect(page.locator('tbody#s[data-skeleton][inert] > tr')).toHaveCount(3)
+    await expect(page.locator('tbody#c.rows[data-sx="red"][data-skeleton][inert] > tr')).toHaveCount(2)
+    const cell = (await page.locator('#c .cell').first().boundingBox())!
+    expect([cell.width, cell.height]).toEqual([64, 24])
+
+    await page.evaluate(() => (window as any).setLoading(false))
+    await expect(page.locator('tbody > tr')).toHaveCount(2)
+    expect(await page.locator('[data-skeleton], [inert]').count()).toBe(0)
+    expect(problems).toEqual([])
+  })
+
+  test('the CommonJS builds, for require() and Jest, match the ES modules', async () => {
+    const req = createRequire(path.join(FIXTURE, 'index.js'))
+    const { createElement: h } = req('react')
+    const { renderToStaticMarkup } = req('react-dom/server')
+    const load = async (entry: string) => {
+      expect(req.resolve(`skeletone/${entry}`)).toBe(path.join(ROOT, `${entry}.cjs`))
+      const [cjs, esm] = [req(`skeletone/${entry}`), await import(path.join(ROOT, `${entry}.mjs`))]
+      expect(Object.keys(cjs).sort()).toEqual(Object.keys(esm).filter((k) => k !== 'default').sort())
+      return [cjs, esm]
+    }
+
+    for (const m of await load('react')) {
+      const all = [true, false].map((loading) => [
+        m.skeleton(loading),
+        renderToStaticMarkup(h(m.Skeleton, { as: 'ul', label: 'Loading', count: 2, loading, className: 'c' }, h('li'))),
+      ])
+      expect(all).toEqual([
+        [{ 'data-skeleton': '', inert: true }, '<span role="status" class="skeletone-status">Loading</span><ul data-skeleton="" inert="" class="c"><li></li><li></li></ul>'],
+        [{ 'data-skeleton': undefined, inert: undefined }, '<ul class="c"><li></li></ul>'],
+      ])
+    }
+    const [vueCjs, vueEsm] = await load('vue')
+    for (const value of [undefined, true, false, null]) {
+      expect(vueCjs.vSkeleton.getSSRProps({ value })).toEqual(vueEsm.vSkeleton.getSSRProps({ value }))
+      const [a, b] = [vueCjs, vueEsm].map((m) => {
+        const el = { attrs: new Set<string>(), inert: false, toggleAttribute(n: string, on: boolean) { on ? this.attrs.add(n) : this.attrs.delete(n) } }
+        m.vSkeleton.mounted(el, { value })
+        return [[...el.attrs], el.inert]
+      })
+      expect(a).toEqual(b)
+    }
+    const [svelteCjs, svelteEsm] = await load('svelte')
+    for (const loading of [undefined, true, false]) expect(svelteCjs.skeleton(loading)).toEqual(svelteEsm.skeleton(loading))
+    const [textCjs, textEsm] = await load('text')
+    for (const n of [0, 5, 40, 320]) expect(textCjs.text(n)).toBe(textEsm.text(n))
+  })
+
+  test('text() makes placeholder words that wrap like real text', async ({ page }) => {
+    const { text } = await import(path.join(ROOT, 'text.mjs'))
+    expect(text(40)).toMatch(/^x+( x+)+$/)
+    expect(text(40).length).toBeGreaterThanOrEqual(38)
+    expect(text(40).length).toBeLessThanOrEqual(40)
+    expect(text(0)).toBe('')
+
+    await page.setContent(`<style>body{font:16px/1.5 sans-serif;margin:0}.card{width:200px}.title,.about{margin:0}</style>
+      <div class="card" data-skeleton inert><h3 class="title">${text(40)}</h3><p class="about">${text(320)}</p></div>`)
+    await page.addStyleTag({ path: CSS })
+    for (const [sel, lines] of [['.title', 2], ['.about', 8]] as const) {
+      const [height, lineHeight, overflow] = await page
+        .locator(sel)
+        .evaluate((el) => [el.getBoundingClientRect().height, parseFloat(getComputedStyle(el).lineHeight), el.scrollWidth - el.clientWidth])
+      expect(overflow).toBe(0)
+      expect(height / lineHeight).toBeGreaterThanOrEqual(lines)
+    }
+  })
+
   test('vue: v-skeleton renders on the server, hydrates cleanly and switches off', async ({ page }) => {
     await serverThenClient(
       page,
@@ -172,7 +304,7 @@ test.describe('framework helpers', () => {
   })
 
   test('each helper bundles alone, without the other helpers or the CSS', async () => {
-    for (const [entry, name] of [['react', 'skeleton'], ['vue', 'vSkeleton'], ['svelte', 'skeleton']]) {
+    for (const [entry, name] of [['react', 'skeleton'], ['vue', 'vSkeleton'], ['svelte', 'skeleton'], ['text', 'text']]) {
       const { inputs } = await bundle(`import { ${name} } from 'skeletone/${entry}'; console.log(${name})`)
       expect(inputs.filter((f) => !f.includes('node_modules') && f !== '<stdin>')).toEqual([`${entry}.mjs`])
       const others = ['react', 'vue', 'svelte'].filter((f) => f !== entry)

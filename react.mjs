@@ -9,10 +9,16 @@ export function skeleton(loading = true) {
     : { 'data-skeleton': undefined, inert: undefined }
 }
 
-export function Skeleton({ loading = true, count = 1, children, ...props }) {
+export function Skeleton({ as = 'div', loading = true, count = 1, label, children, ...props }) {
   const content =
     loading && count > 1
       ? Array.from({ length: count }, (_, i) => createElement(Fragment, { key: i }, children))
       : children
-  return createElement('div', { ...skeleton(loading), ...props }, content)
+  // The status sits outside the inert element. The null slot avoids a remount.
+  return createElement(
+    Fragment,
+    null,
+    loading && label ? createElement('span', { role: 'status', className: 'skeletone-status' }, label) : null,
+    createElement(as, { ...skeleton(loading), ...props }, content),
+  )
 }

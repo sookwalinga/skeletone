@@ -97,6 +97,20 @@
       0 0 / 100% calc(100% - 1lh) no-repeat;
 }
 
+/* A loading message for screen readers, placed outside the inert skeleton: hidden on
+   screen, still read out. */
+.skeletone-status {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
 @keyframes skeletone-pulse {
   50% { opacity: 0.55; }
 }
