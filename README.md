@@ -2,8 +2,9 @@
 
 **CSS-only skeleton loaders from your real markup.** Add one attribute to a container and
 everything inside it turns into a loading skeleton that matches the real layout. You don't
-write separate skeleton components, and there's no JavaScript or build step. It works with
-any framework.
+write separate skeleton components. The core is one stylesheet with no JavaScript, so it
+works with any framework, and optional helpers for React, Vue and Svelte set the attributes
+for you.
 
 ```html
 <link rel="stylesheet" href="skeletone.css" />
@@ -44,50 +45,78 @@ import 'skeletone/skeletone.css' // bundlers that handle CSS imports
 
 Or use a `<link>` to `node_modules/skeletone/skeletone.css`, or to a CDN copy.
 
+The framework helpers are optional, and each is a separate import. A React app bundles only
+`skeletone/react`, never the Vue or Svelte code. Installing skeletone doesn't install any
+framework.
+
 ## Usage
 
 Switch skeleton mode on with `data-skeleton`. Remove it, or set it to `"false"`, to show
 the content.
 
-**HTML**
+Skeleton mode needs two attributes: `data-skeleton` draws the bars, and `inert` keeps focus,
+clicks and screen readers out of the placeholder content (see Accessibility). The helpers
+set both from one loading flag, and they render on the server too.
+
+**React**
+
+```jsx
+import { skeleton, Skeleton } from 'skeletone/react'
+
+<section {...skeleton(isLoading)}>
+  <OpportunityCard opportunity={data ?? {}} />
+</section>
+```
+
+`skeleton(loading)` returns both attributes, in the form your React version needs. Spread it
+onto any element, or onto a component that passes props to its element, such as an MUI
+`Box` or `Grid`. It adds no element of its own. Called with no argument, it's on.
+
+`<Skeleton>` is a `<div>` in skeleton mode, for when there's no element to spread onto. Its
+`loading` prop defaults to `true`, and `count` repeats the children while loading, so a list
+needs one empty record instead of a placeholder array:
+
+```jsx
+<Skeleton count={6}>
+  <OpportunityCard opportunity={EMPTY_OPPORTUNITY} />
+</Skeleton>
+```
+
+**Vue**
+
+```html
+<script setup>
+import { vSkeleton } from 'skeletone/vue'
+</script>
+
+<template>
+  <section v-skeleton="loading">…</section>
+</template>
+```
+
+Outside `<script setup>`, register it with `app.directive('skeleton', vSkeleton)`.
+`v-skeleton` with no value is on.
+
+**Svelte**
+
+```svelte
+<script>
+  import { skeleton } from 'skeletone/svelte'
+</script>
+
+<section {...skeleton(loading)}>…</section>
+```
+
+**HTML and other frameworks**
 
 ```html
 <section data-skeleton inert>…</section>
 ```
 
-**React**
-
-```jsx
-<section data-skeleton={isLoading} inert={isLoading}>
-  <OpportunityCard opportunity={data ?? {}} />
-</section>
-```
-
-`data-skeleton={false}` renders `data-skeleton="false"`, and skeletone treats that as off.
-`inert={isLoading}` needs React 19. On React 18, write `inert={isLoading ? '' : undefined}`.
-
-**Vue / Svelte**
-
-```html
-<section :data-skeleton="loading" :inert="loading || undefined">…</section>
-<section data-skeleton={loading} inert={loading || undefined}>…</section>
-```
-
-`inert` is a boolean attribute, so `inert="false"` still makes the element inert. Pass
-`undefined` to remove it.
-
-`inert` stops focus, clicks and screen readers from reaching the placeholder content (see
-Accessibility). To set both attributes from one flag, wrap them in a component of your own:
-
-```jsx
-function Skeleton({ loading = true, ...props }) {
-  return <div data-skeleton={loading} inert={loading} {...props} />
-}
-
-<Skeleton loading={isLoading}>
-  <OpportunityCard opportunity={data ?? {}} />
-</Skeleton>
-```
+Remove both attributes to show the content. skeletone also treats `data-skeleton="false"`
+as off. `inert` is a boolean attribute, so `inert="false"` still makes the element inert:
+remove it, which most frameworks do when you pass `undefined`. In React 18 without the
+helper, write `inert={isLoading ? '' : undefined}`.
 
 ### Paragraphs
 
@@ -135,7 +164,7 @@ const placeholder = {
   tags: ['xxxxx', 'xxxxx', 'xxxxx'],
 }
 
-<main data-skeleton={isLoading} inert={isLoading}>
+<main {...skeleton(isLoading)}>
   <Opportunity opportunity={data ?? placeholder} />
 </main>
 ```
@@ -166,8 +195,8 @@ Use it for parts that don't depend on the data, such as a back link or a page he
 </main>
 ```
 
-Put `inert` on the loading part, not on the container. Everything inside an inert element
-is inert, ignored sections included.
+Put `inert`, or the helper, on the loading part, not on the container. Everything inside an
+inert element is inert, ignored sections included.
 
 ## Customise
 
@@ -205,9 +234,9 @@ The whole library is one stylesheet. Inside `[data-skeleton]`:
 
 ## Accessibility
 
-- Put `inert` on the container while it loads. It removes the skeleton from the tab order
-  and hides it from screen readers, so they don't read out placeholder text. CSS can do
-  neither. `aria-busy` isn't needed on the same element: an inert element isn't announced.
+- Put `inert` on the container while it loads (the helpers do this for you). It removes
+  the skeleton from the tab order and hides it from screen readers, so they don't read out
+  placeholder text. CSS can do neither. `aria-busy` isn't needed on the same element: an inert element isn't announced.
 - To announce loading, put a `role="status"` message outside the inert part.
 - The pulse and the fade-in stop when the user asks for reduced motion. The bars then show
   at once.
@@ -230,12 +259,15 @@ Any browser with `:has()`, the `lh` unit and `color-mix()`: Chrome / Edge 111+, 
 - **Empty decorative elements** (a 1px divider `<div>`, an icon-font `<i>`) are leaves too,
   so they become bars at least a line tall. Mark them `data-skeleton-ignore`.
 - **Real images** inside a skeleton are painted over. That's intended, but it includes logos.
+- **The helpers are ES modules only.** Bundlers, Vitest and Node handle them. Jest needs
+  `skeletone` added to `transformIgnorePatterns`.
 
 ## Development
 
 ```sh
 yarn install
 yarn test          # Playwright: Chromium, Firefox, WebKit
+yarn typecheck     # the helpers' type definitions
 open demo/index.html
 ```
 

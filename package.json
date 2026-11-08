@@ -1,21 +1,51 @@
 {
   "name": "skeletone",
   "version": "0.1.0",
-  "description": "CSS-only skeleton loader: turn your real markup into a loading skeleton screen with one attribute. No JavaScript, any framework.",
+  "description": "Skeleton loaders from your real markup: one attribute turns a component into its own loading skeleton. CSS-only core, optional React, Vue and Svelte helpers.",
   "author": "Samuel Okwalinga",
   "license": "MIT",
   "style": "skeletone.css",
   "main": "skeletone.css",
   "exports": {
     ".": "./skeletone.css",
-    "./skeletone.css": "./skeletone.css"
+    "./skeletone.css": "./skeletone.css",
+    "./react": {
+      "types": "./react.d.mts",
+      "default": "./react.mjs"
+    },
+    "./vue": {
+      "types": "./vue.d.mts",
+      "default": "./vue.mjs"
+    },
+    "./svelte": {
+      "types": "./svelte.d.mts",
+      "default": "./svelte.mjs"
+    }
   },
   "files": [
-    "skeletone.css"
+    "skeletone.css",
+    "react.mjs",
+    "react.d.mts",
+    "vue.mjs",
+    "vue.d.mts",
+    "svelte.mjs",
+    "svelte.d.mts"
   ],
   "sideEffects": [
     "*.css"
   ],
+  "peerDependencies": {
+    "react": ">=18",
+    "vue": ">=3"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    },
+    "vue": {
+      "optional": true
+    }
+  },
   "keywords": [
     "skeleton",
     "skeleton-loader",
@@ -24,14 +54,27 @@
     "placeholder",
     "shimmer",
     "css",
-    "ssr"
+    "ssr",
+    "react",
+    "vue",
+    "svelte"
   ],
   "scripts": {
     "test": "playwright test",
-    "pack": "yarn pack --filename skeletone.tgz"
+    "pack": "yarn pack --filename skeletone.tgz",
+    "typecheck": "tsc -p test/tsconfig.json"
   },
   "devDependencies": {
-    "@playwright/test": "1.64.0"
+    "@playwright/test": "1.64.0",
+    "@types/react": "19.3.0",
+    "esbuild": "0.28.2",
+    "react": "19.3.1",
+    "react-18": "npm:react@18.3.1",
+    "react-dom": "19.3.1",
+    "react-dom-18": "npm:react-dom@18.3.1",
+    "svelte": "5.57.3",
+    "typescript": "7.0.2",
+    "vue": "3.5.45"
   },
   "packageManager": "yarn@1.22.22"
 }
