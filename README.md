@@ -8,7 +8,7 @@ any framework.
 ```html
 <link rel="stylesheet" href="skeletone.css" />
 
-<div data-skeleton aria-busy="true">
+<div data-skeleton inert>
   <article class="card">
     <img class="avatar" alt="" />
     <h3></h3>
@@ -52,24 +52,41 @@ the content.
 **HTML**
 
 ```html
-<section data-skeleton aria-busy="true">…</section>
+<section data-skeleton inert>…</section>
 ```
 
 **React**
 
 ```jsx
-<section data-skeleton={isLoading} aria-busy={isLoading}>
+<section data-skeleton={isLoading} inert={isLoading}>
   <OpportunityCard opportunity={data ?? {}} />
 </section>
 ```
 
 `data-skeleton={false}` renders `data-skeleton="false"`, and skeletone treats that as off.
+`inert={isLoading}` needs React 19. On React 18, write `inert={isLoading ? '' : undefined}`.
 
 **Vue / Svelte**
 
 ```html
-<section :data-skeleton="loading" :aria-busy="loading">…</section>
-<section data-skeleton={loading} aria-busy={loading}>…</section>
+<section :data-skeleton="loading" :inert="loading || undefined">…</section>
+<section data-skeleton={loading} inert={loading || undefined}>…</section>
+```
+
+`inert` is a boolean attribute, so `inert="false"` still makes the element inert. Pass
+`undefined` to remove it.
+
+`inert` stops focus, clicks and screen readers from reaching the placeholder content (see
+Accessibility). To set both attributes from one flag, wrap them in a component of your own:
+
+```jsx
+function Skeleton({ loading = true, ...props }) {
+  return <div data-skeleton={loading} inert={loading} {...props} />
+}
+
+<Skeleton loading={isLoading}>
+  <OpportunityCard opportunity={data ?? {}} />
+</Skeleton>
 ```
 
 ### Paragraphs
@@ -118,7 +135,7 @@ const placeholder = {
   tags: ['xxxxx', 'xxxxx', 'xxxxx'],
 }
 
-<main data-skeleton={isLoading} aria-busy={isLoading}>
+<main data-skeleton={isLoading} inert={isLoading}>
   <Opportunity opportunity={data ?? placeholder} />
 </main>
 ```
@@ -143,11 +160,14 @@ Use placeholder text for zero configuration, or empty values to control lengths 
 Use it for parts that don't depend on the data, such as a back link or a page header:
 
 ```html
-<main data-skeleton aria-busy="true">
+<main data-skeleton>
   <header data-skeleton-ignore><a href="/">← All opportunities</a></header>
-  …
+  <article inert>…</article>
 </main>
 ```
+
+Put `inert` on the loading part, not on the container. Everything inside an inert element
+is inert, ignored sections included.
 
 ## Customise
 
@@ -185,10 +205,10 @@ The whole library is one stylesheet. Inside `[data-skeleton]`:
 
 ## Accessibility
 
-- Put `aria-busy="true"` on the container while it loads, so screen readers wait for the
-  real content.
-- Add `inert` too if the skeleton holds focusable elements. CSS can't remove them from the
-  tab order.
+- Put `inert` on the container while it loads. It removes the skeleton from the tab order
+  and hides it from screen readers, so they don't read out placeholder text. CSS can do
+  neither. `aria-busy` isn't needed on the same element: an inert element isn't announced.
+- To announce loading, put a `role="status"` message outside the inert part.
 - The pulse and the fade-in stop when the user asks for reduced motion. The bars then show
   at once.
 

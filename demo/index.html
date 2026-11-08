@@ -47,13 +47,13 @@
     </div>
 
     <!-- The same template renders the skeleton (no data) and the loaded card. -->
-    <div id="list" class="grid" data-skeleton aria-busy="true"></div>
+    <div id="list" class="grid" data-skeleton inert></div>
 
     <!-- A detail page: while loading it renders a placeholder record, so the lists and
          paragraphs that come from data still exist. The header is not data, so it stays. -->
-    <article id="detail" class="card detail" data-skeleton aria-busy="true">
+    <article id="detail" class="card detail" data-skeleton>
       <header class="detail-head" data-skeleton-ignore><a href="#">← All opportunities</a></header>
-      <div class="body">
+      <div class="body" inert>
         <h2 data-field="title"></h2>
         <p class="meta"><span data-field="org"></span> · <time data-field="date"></time></p>
         <p data-field="about"></p>
@@ -127,10 +127,10 @@
         loaded = !loaded
         render(loaded ? DATA : [null, null, null])
         list.dataset.skeleton = String(!loaded)
-        list.setAttribute('aria-busy', String(!loaded))
+        list.inert = !loaded
         renderDetail(loaded ? DETAIL : PLACEHOLDER)
         detail.dataset.skeleton = String(!loaded)
-        detail.setAttribute('aria-busy', String(!loaded))
+        detail.querySelector('.body').inert = !loaded
         document.getElementById('toggle').textContent = loaded ? 'Show skeleton' : 'Show loaded content'
       }
       document.getElementById('theme').onclick = (e) => {
