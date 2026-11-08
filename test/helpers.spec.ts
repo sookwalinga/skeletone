@@ -265,6 +265,13 @@ test.describe('framework helpers', () => {
     for (const n of [0, 5, 40, 320]) expect(textCjs.text(n)).toBe(textEsm.text(n))
   })
 
+  test('the CommonJS type definitions match the ES module ones', async () => {
+    for (const entry of ['react', 'vue', 'svelte', 'text']) {
+      const read = (ext: string) => fs.readFileSync(path.join(ROOT, `${entry}.${ext}`), 'utf8')
+      expect(read('d.cts')).toBe(read('d.mts'))
+    }
+  })
+
   test('text() makes placeholder words that wrap like real text', async ({ page }) => {
     const { text } = await import(path.join(ROOT, 'text.mjs'))
     expect(text(40)).toMatch(/^x+( x+)+$/)

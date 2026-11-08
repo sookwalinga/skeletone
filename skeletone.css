@@ -7,11 +7,15 @@
   pointer-events: none;
   user-select: none;
 }
-/* data-skeleton-ignore keeps a section (a back link, a page header) as it is. */
-[data-skeleton]:not([data-skeleton='false']) [data-skeleton-ignore] {
+/* data-skeleton-ignore keeps a section (a back link, a page header) as it is.
+   Zero specificity, so an ignored button's own cursor wins. */
+:where([data-skeleton]:not([data-skeleton='false']) [data-skeleton-ignore]) {
   cursor: auto;
   pointer-events: auto;
   user-select: text;
+}
+:where([data-skeleton]:not([data-skeleton='false']) [data-skeleton-ignore]:any-link) {
+  cursor: pointer;
 }
 
 /* Hide content, keep layout. Every descendant takes the container's colour so

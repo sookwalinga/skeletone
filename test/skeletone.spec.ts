@@ -102,6 +102,21 @@ test.describe('skeletone', () => {
     expect(await style(page, '#h', 'background-image')).toBe('none')
   })
 
+  test("lets an ignored link or button keep its own cursor and selection", async ({ page }) => {
+    await mount(
+      page,
+      `<div data-skeleton><a id="a" href="#" data-skeleton-ignore>Back</a>
+        <button id="b" class="btn" data-skeleton-ignore>Retry</button><p id="p" data-skeleton-ignore>Note</p></div>`,
+      '.btn{cursor:pointer;user-select:none}',
+    )
+    expect(await style(page, '#a', 'cursor')).toBe('pointer')
+    expect(await style(page, '#b', 'cursor')).toBe('pointer')
+    expect(await style(page, '#b', 'user-select')).toBe('none')
+    expect(await style(page, '#p', 'cursor')).toBe('auto')
+    expect(await style(page, '#p', 'user-select')).toBe('text')
+    expect(await style(page, '#p', 'pointer-events')).toBe('auto')
+  })
+
   test('fills sized shapes such as an avatar without changing their size', async ({ page }) => {
     await mount(
       page,

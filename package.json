@@ -10,24 +10,44 @@
     ".": "./skeletone.css",
     "./skeletone.css": "./skeletone.css",
     "./react": {
-      "types": "./react.d.mts",
-      "import": "./react.mjs",
-      "require": "./react.cjs"
+      "import": {
+        "types": "./react.d.mts",
+        "default": "./react.mjs"
+      },
+      "require": {
+        "types": "./react.d.cts",
+        "default": "./react.cjs"
+      }
     },
     "./vue": {
-      "types": "./vue.d.mts",
-      "import": "./vue.mjs",
-      "require": "./vue.cjs"
+      "import": {
+        "types": "./vue.d.mts",
+        "default": "./vue.mjs"
+      },
+      "require": {
+        "types": "./vue.d.cts",
+        "default": "./vue.cjs"
+      }
     },
     "./svelte": {
-      "types": "./svelte.d.mts",
-      "import": "./svelte.mjs",
-      "require": "./svelte.cjs"
+      "import": {
+        "types": "./svelte.d.mts",
+        "default": "./svelte.mjs"
+      },
+      "require": {
+        "types": "./svelte.d.cts",
+        "default": "./svelte.cjs"
+      }
     },
     "./text": {
-      "types": "./text.d.mts",
-      "import": "./text.mjs",
-      "require": "./text.cjs"
+      "import": {
+        "types": "./text.d.mts",
+        "default": "./text.mjs"
+      },
+      "require": {
+        "types": "./text.d.cts",
+        "default": "./text.cjs"
+      }
     }
   },
   "files": [
@@ -35,15 +55,19 @@
     "react.mjs",
     "react.cjs",
     "react.d.mts",
+    "react.d.cts",
     "vue.mjs",
     "vue.cjs",
     "vue.d.mts",
+    "vue.d.cts",
     "svelte.mjs",
     "svelte.cjs",
     "svelte.d.mts",
+    "svelte.d.cts",
     "text.mjs",
     "text.cjs",
-    "text.d.mts"
+    "text.d.mts",
+    "text.d.cts"
   ],
   "sideEffects": [
     "*.css"
@@ -76,7 +100,7 @@
   "scripts": {
     "test": "playwright test",
     "pack": "yarn pack --filename skeletone.tgz",
-    "typecheck": "tsc -p test/tsconfig.json"
+    "typecheck": "tsc -p test/tsconfig.json && tsc -p test/tsconfig.cjs.json"
   },
   "devDependencies": {
     "@playwright/test": "1.64.0",

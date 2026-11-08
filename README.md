@@ -18,7 +18,7 @@ for you.
 </div>
 ```
 
-About 1.5 KB gzipped.
+About 1.7 KB gzipped.
 
 ## Why
 
@@ -47,8 +47,8 @@ Or use a `<link>` to `node_modules/skeletone/skeletone.css`, or to a CDN copy.
 
 The framework helpers are optional, and each is a separate import. A React app bundles only
 `skeletone/react`, never the Vue or Svelte code. Installing skeletone doesn't install any
-framework. Each helper ships as an ES module and as CommonJS, so Jest loads it without any
-transform config.
+framework. Each helper ships as an ES module and as CommonJS, each with its own type
+definitions, so Jest loads it without any transform config.
 
 ## Usage
 
@@ -275,7 +275,8 @@ The whole library is one stylesheet. Inside `[data-skeleton]`:
 
 - Put `inert` on the container while it loads (the helpers do this for you). It removes
   the skeleton from the tab order and hides it from screen readers, so they don't read out
-  placeholder text. CSS can do neither. `aria-busy` isn't needed on the same element: an inert element isn't announced.
+  placeholder text. CSS can do neither. `aria-busy` isn't needed on the same element: an
+  inert element isn't announced.
 - To announce loading, put a `role="status"` message outside the inert part. In React,
   `<Skeleton label="Loading articles">` renders one. Elsewhere, write it yourself and give
   it the `skeletone-status` class, which hides it on screen but not from screen readers.
