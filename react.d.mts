@@ -13,6 +13,11 @@ interface OwnProps<C extends ElementType> {
   /** While loading, a message for screen readers, such as "Loading articles", rendered as a
    * visually hidden `role="status"` span just before the element. */
   label?: string
+  /** What the message is wrapped in, so it's valid next to the element: `'tbody'` beside a
+   * table body, `'tr'` beside a row, `'li'` beside a list item. Follows `as` when that's a
+   * tag name, so set it only when `as` is a component, such as MUI's `TableBody`. Defaults
+   * to `'span'`. */
+  labelAs?: 'span' | 'tbody' | 'tr' | 'li'
 }
 
 export type SkeletonProps<C extends ElementType = 'div'> = OwnProps<C> &

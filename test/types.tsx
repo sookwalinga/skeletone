@@ -33,3 +33,6 @@ export const badSx = <Skeleton as={TableBody} sx={1} />
 export const badHref = <Skeleton href='/' />
 export const anchor = <Skeleton as='a' href='/' />
 export const placeholder: string = text(40)
+export const tableLabel = <Skeleton as={TableBody} label='Loading roles' labelAs='tbody' />
+// @ts-expect-error labelAs is one of span, tbody, tr or li
+export const badLabelAs = <Skeleton label='Loading' labelAs='div' />

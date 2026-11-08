@@ -228,6 +228,53 @@ test.describe('framework helpers', () => {
     expect(problems).toEqual([])
   })
 
+  test('react: <Skeleton label> next to a table body, row or list item is valid markup', async ({ page }) => {
+    const problems = await reactServerThenClient(
+      page,
+      `import { createElement as h, useState } from 'react'
+       import { Skeleton } from 'skeletone/react'
+       const TableBody = (props) => h('tbody', props)
+       function App() {
+         const [loading, setLoading] = useState(true)
+         globalThis.setLoading = setLoading
+         const row = h('tr', { className: 'row' }, h('td', null, h('span', { className: 'cell' })))
+         const head = h('thead', null, h('tr', null, h('th', null, 'Role')))
+         return h('div', null,
+           // Collapsed borders, as styled tables use: with the default 2px border-spacing,
+           // the extra body adds one more 2px gap.
+           h('table', { id: 'a', style: { borderCollapse: 'collapse' } }, head, h(Skeleton, { as: 'tbody', id: 's', loading, label: 'Loading roles', count: 3 }, row)),
+           h('table', { id: 'n', style: { borderCollapse: 'collapse' } }, head, h(Skeleton, { as: 'tbody', id: 'ns', loading, count: 3 }, row)),
+           h('table', { id: 'b' }, h(Skeleton, { as: TableBody, id: 'c', loading, label: 'Loading users', labelAs: 'tbody' }, row)),
+           h('table', { id: 'r' }, h('tbody', null, h(Skeleton, { as: 'tr', id: 't', loading, label: 'Loading row' }, h('td')))),
+           h('ul', { id: 'l' }, h(Skeleton, { as: 'li', loading, label: 'Loading item' }, 'Item')))
+       }`,
+    )
+    const statuses = page.getByRole('status')
+    await expect(statuses).toHaveText(['Loading roles', 'Loading users', 'Loading row', 'Loading item'])
+    for (const id of ['#a', '#b']) {
+      expect(await page.locator(id).evaluate((t) => [...t.children].map((c) => `${c.tagName} ${c.className}`.trim()))).toEqual(
+        id === '#a' ? ['THEAD', 'TBODY skeletone-status-group', 'TBODY'] : ['TBODY skeletone-status-group', 'TBODY'],
+      )
+    }
+    expect(await statuses.evaluateAll((els) => els.map((el) => [el.className, el.closest('[inert]')]))).toEqual(
+      Array(4).fill(['skeletone-status', null]),
+    )
+    // The message takes no room: the rows sit as they do in the same table without one.
+    const gap = async (table: string) => {
+      const [head, row] = [await page.locator(`${table} thead`).boundingBox(), await page.locator(`${table} .row`).first().boundingBox()]
+      return row!.y - head!.y
+    }
+    expect(await gap('#a')).toBe(await gap('#n'))
+    expect(await page.locator('#l').evaluate((ul) => [...ul.children].map((c) => `${c.tagName} ${c.className}`.trim()))).toEqual([
+      'LI skeletone-status-group',
+      'LI',
+    ])
+
+    await page.evaluate(() => (window as any).setLoading(false))
+    await expect(statuses).toHaveCount(0)
+    expect(problems).toEqual([])
+  })
+
   test('the CommonJS builds, for require() and Jest, match the ES modules', async () => {
     const req = createRequire(path.join(FIXTURE, 'index.js'))
     const { createElement: h } = req('react')

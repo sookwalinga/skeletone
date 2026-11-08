@@ -18,7 +18,7 @@ for you.
 </div>
 ```
 
-About 1.7 KB gzipped.
+About 2 KB gzipped.
 
 ## Why
 
@@ -96,6 +96,7 @@ renders, while loading:
 | `count`   | `1`     | Renders the children this many times while loading                         |
 | `label`   | none    | While loading, a hidden `role="status"` message just before the element    |
 | `as`      | `'div'` | The element or component to render                                         |
+| `labelAs` | `as`    | What wraps the message: `'span'`, `'tbody'`, `'tr'` or `'li'`              |
 
 Other props pass through to the element. With `as`, a table or list can repeat its rows,
 and a component such as MUI's `TableBody` or `Grid` takes the attributes without an extra
@@ -112,9 +113,14 @@ wrapper:
 <Skeleton as={TableBody} count={5} sx={{ minHeight: 200 }}>…</Skeleton>
 ```
 
-`label` adds a `<span>` beside the element, and a `<span>` isn't allowed beside a `<tbody>`
-or an `<li>`. For table and list rows, put the message outside the table or list yourself
-(see Accessibility).
+`label` puts its message beside the element, wrapped so the markup stays valid: a table
+body next to a `tbody`, a row next to a `tr`, a list item next to an `li`, otherwise a
+`<span>`. The wrapper takes no space. When `as` is a component, `<Skeleton>` can't tell
+what it renders, so name it with `labelAs`:
+
+```jsx
+<Skeleton as={TableBody} count={5} label="Loading roles" labelAs="tbody">…</Skeleton>
+```
 
 **Vue**
 
@@ -237,6 +243,18 @@ Use it for parts that don't depend on the data, such as a back link or a page he
 Put `inert`, or the helper, on the loading part, not on the container. Everything inside an
 inert element is inert, ignored sections included.
 
+### Drawing an element as one bar
+
+A coloured element that holds other elements keeps its colour, because only leaves become
+bars: an avatar showing a fallback icon stays blue, a chip stays tinted around its label
+bar. `data-skeleton-block` draws the element as one bar in the skeleton colour and hides
+what's inside. It keeps its own size and corners, and does nothing outside skeleton mode:
+
+```jsx
+<Avatar data-skeleton-block src={user.photo} />
+<Chip data-skeleton-block label={`${count} permissions`} />
+```
+
 ## Customise
 
 All settings are CSS custom properties. Set them on the container or anywhere above it.
@@ -260,8 +278,10 @@ The whole library is one stylesheet. Inside `[data-skeleton]`:
 
 1. Text is hidden with `-webkit-text-fill-color: transparent`, so it keeps its layout.
 2. Leaf elements, meaning elements with no element children (`:not(:has(*))`), plus whole
-   SVG icons, get a background in the bar colour and a gentle pulse. The bars fade in after
-   150ms, so a load that finishes sooner never flashes them.
+   SVG icons and `data-skeleton-block` elements, get a background in the bar colour and a
+   gentle pulse. The bars fade in after 150ms, so a load that finishes sooner never flashes
+   them. The `[data-skeleton]` element counts too: one with no element children, such as
+   `<p data-skeleton>12 users</p>`, is drawn like a leaf.
 3. Text elements that hold text get a strike-through 0.6 of a line thick instead, so each
    wrapped line gets its own bar.
 4. Empty text elements get a `1lh` minimum height and a bar drawn as a gradient, so they
@@ -286,6 +306,16 @@ The whole library is one stylesheet. Inside `[data-skeleton]`:
   <span role="status" class="skeletone-status">Loading articles</span>
   <section data-skeleton inert>…</section>
   ```
+
+  Inside a table or a list, where a `<span>` isn't allowed, wrap it in a body, row or item
+  with the `skeletone-status-group` class, which takes no space:
+
+  ```html
+  <tbody class="skeletone-status-group"><tr><td>
+    <span role="status" class="skeletone-status">Loading roles</span>
+  </td></tr></tbody>
+  <tbody data-skeleton inert>…</tbody>
+  ```
 - The pulse and the fade-in stop when the user asks for reduced motion. The bars then show
   at once.
 
@@ -307,8 +337,9 @@ Any browser with `:has()`, the `lh` unit and `color-mix()`: Chrome / Edge 111+, 
 - **Empty decorative elements** (a 1px divider `<div>`, an icon-font `<i>`) are leaves too,
   so they become bars at least a line tall. Mark them `data-skeleton-ignore`.
 - **Real images** inside a skeleton are painted over. That's intended, but it includes logos.
-- **`label` needs a place where a `<span>` is allowed.** With `as="tbody"`, `"tr"` or
-  `"li"`, put a `.skeletone-status` message outside the table or list instead.
+- **A table message adds one `border-spacing` gap** to a table with separate borders (the
+  browser default, 2px). Tables with `border-collapse: collapse`, as most styled tables
+  have, don't move.
 
 ## Development
 

@@ -197,6 +197,49 @@ test.describe('skeletone', () => {
     expect(await page.locator('body').ariaSnapshot()).toContain('- status: Loading articles')
   })
 
+  test('draws the data-skeleton element itself when it holds no elements', async ({ page }) => {
+    await mount(
+      page,
+      `<p id="p" data-skeleton class="c">12 of 40 users</p><h3 id="h" data-skeleton></h3>
+       <p id="off" data-skeleton="false">Shown</p>`,
+      '.c{color:rgb(0, 0, 255)}',
+    )
+    expect(await style(page, '#p', '-webkit-text-fill-color')).toBe('rgba(0, 0, 0, 0)')
+    expect(await style(page, '#p', 'text-decoration-line')).toBe('line-through')
+    // The bar is a tint of the element's own colour, which it keeps.
+    expect(await style(page, '#p', 'color')).toBe('rgb(0, 0, 255)')
+    expect(await style(page, '#p', 'text-decoration-color')).toBe('color(srgb 0 0 1 / 0.13)')
+    expect(await style(page, '#h', 'background-image')).toContain('gradient')
+    expect((await box(page, '#h')).height).toBeGreaterThan(20)
+    expect(await style(page, '#off', '-webkit-text-fill-color')).not.toBe('rgba(0, 0, 0, 0)')
+  })
+
+  test('draws a data-skeleton-block element as one bar, whatever it holds', async ({ page }) => {
+    await mount(
+      page,
+      `<div data-skeleton>
+         <div id="a" class="avatar" data-skeleton-block><svg id="i" viewBox="0 0 4 4"><circle cx="2" cy="2" r="2"/></svg></div>
+         <div id="chip" class="chip" data-skeleton-block><span id="l">12 permissions</span></div>
+       </div>`,
+      `.avatar{width:36px;height:36px;border-radius:50%;background:rgb(0, 128, 255);border:3px solid rgb(0, 0, 255)}
+       .chip{display:inline-flex;height:24px;padding:0 8px;border-radius:16px;background:rgb(200, 230, 255)}
+       svg{width:20px;height:20px}`,
+    )
+    const bar = await style(page, '#a', 'background-color')
+    expect(bar).not.toBe('rgb(0, 128, 255)')
+    expect(await style(page, '#chip', 'background-color')).toBe(bar)
+    expect(await style(page, '#a', 'border-top-color')).toBe('rgba(0, 0, 0, 0)')
+    expect(await box(page, '#a')).toMatchObject({ width: 42, height: 42 })
+    expect(await style(page, '#a', 'border-radius')).toBe('50%')
+    expect(await style(page, '#chip', 'border-radius')).toBe('16px')
+    for (const inner of ['#i', '#l']) expect(await style(page, inner, 'visibility')).toBe('hidden')
+  })
+
+  test('leaves data-skeleton-block alone outside skeleton mode', async ({ page }) => {
+    await mount(page, '<div><div id="a" class="avatar" data-skeleton-block><svg></svg></div></div>', '.avatar{background:rgb(0, 128, 255)}')
+    expect(await style(page, '#a', 'background-color')).toBe('rgb(0, 128, 255)')
+  })
+
   test('stops the pulse for reduced motion', async ({ page }) => {
     await page.emulateMedia({ reducedMotion: 'reduce' })
     await mount(page, '<div data-skeleton><h3 id="t"></h3></div>')
