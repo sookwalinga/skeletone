@@ -32,8 +32,9 @@
 
 /* Leaves (elements with no element children) and whole icons become bars. Each rule
    also matches the data-skeleton element itself, so one that holds no elements, such as
-   a single line of text, is drawn too. */
-:is(:not(:has(*)), svg):not(svg *, br, hr, wbr, script, style, template):is([data-skeleton]:not([data-skeleton='false']), [data-skeleton]:not([data-skeleton='false']) *):not([data-skeleton-ignore], [data-skeleton-ignore] *) {
+   a single line of text, is drawn too. Text blocks keep their borders (row lines). */
+:is(:not(:has(*)), svg):not(svg *, br, hr, wbr, script, style, template):not(:where(h1, h2, h3, h4, h5, h6, p, li, dt, dd, td, th, figcaption, blockquote, caption, legend,
+    summary)):is([data-skeleton]:not([data-skeleton='false']), [data-skeleton]:not([data-skeleton='false']) *):not([data-skeleton-ignore], [data-skeleton-ignore] *) {
   background: var(--_c);
   border-color: transparent;
   box-shadow: none;
@@ -75,11 +76,12 @@ img:is([data-skeleton]:not([data-skeleton='false']), [data-skeleton]:not([data-s
   text-decoration-color: var(--_c);
   text-decoration-thickness: 0.6lh;
 }
-/* Empty text gets a text-height bar instead of a full line-height block. */
+/* Empty text gets a text-height bar instead of a full line-height block, inside the
+   padding, where text would be. */
 :where(h1, h2, h3, h4, h5, h6, p, li, dt, dd, td, th, figcaption, blockquote, caption, legend,
     summary, span, a, b, i, em, strong, small, time, code, cite, q, abbr, mark, label):is([data-skeleton]:not([data-skeleton='false']), [data-skeleton]:not([data-skeleton='false']) *):empty:not([data-skeleton-ignore], [data-skeleton-ignore] *) {
   background: linear-gradient(var(--_c) 0 0) 0 50% / var(--_w, var(--skeleton-width, 100%)) 0.6lh
-    no-repeat;
+    no-repeat content-box border-box;
 }
 /* Empty inline text has no width of its own. */
 :where(span, a, b, i, em, strong, small, time, code, cite, q, abbr, mark, label):is([data-skeleton]:not([data-skeleton='false']), [data-skeleton]:not([data-skeleton='false']) *):empty:not([data-skeleton-ignore], [data-skeleton-ignore] *) {

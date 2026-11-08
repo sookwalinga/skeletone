@@ -74,12 +74,17 @@ onto any element, or onto a component that passes props to its element, such as 
 `Box` or `Grid`. It adds no element of its own. Called with no argument, it's on.
 
 `<Skeleton>` renders an element in skeleton mode, for when there's no element to spread
-onto. `count` repeats the children while loading, so a list needs one empty record instead
-of a placeholder array, and `label` tells screen readers what's loading:
+onto. `count` repeats the children while loading, so a list needs one placeholder record
+instead of an array of them (see Placeholder records), and `label` tells screen readers
+what's loading. Each copy gets its own key, so the record needs no `id`:
 
-```jsx
-<Skeleton label="Loading opportunities" count={6}>
-  <OpportunityCard opportunity={EMPTY_OPPORTUNITY} />
+```tsx
+const LOADING_OPPORTUNITY = {} as Opportunity
+
+<Skeleton label="Loading opportunities" count={6} loading={!data}>
+  {data
+    ? data.map((o) => <OpportunityCard key={o.id} opportunity={o} />)
+    : <OpportunityCard opportunity={LOADING_OPPORTUNITY} />}
 </Skeleton>
 ```
 
@@ -106,7 +111,7 @@ wrapper:
 <table>
   <thead>…</thead>
   <Skeleton as="tbody" count={5}>
-    <RoleRow role={PLACEHOLDER_ROLE} />
+    <RoleRow role={LOADING_ROLE} />
   </Skeleton>
 </table>
 
@@ -228,6 +233,29 @@ const placeholder = { title: '', about: '', tags: ['', '', ''] }
 
 Use placeholder text for zero configuration, or empty values to control lengths exactly.
 
+### Placeholder records
+
+A placeholder record holds only what the component can't render without. A field it only
+displays can be left out: it renders empty and gets the default bar. Keep the fields it
+reads into, such as an array it maps, an object whose fields it reads or a date it formats,
+because `undefined` throws there. In TypeScript, cast the record to the full type. Types
+don't exist at runtime, so skeletone can't fill the record in from them:
+
+```ts
+const LOADING_ROLE = { permissions: [] } as RBACRole // RoleRow maps permissions
+
+<Skeleton as="tbody" count={5} loading={!roles}>
+  {roles
+    ? roles.map((r) => <RoleRow key={r.id} role={r} />)
+    : <RoleRow role={LOADING_ROLE} />}
+</Skeleton>
+```
+
+The cast tells TypeScript the record is complete, so a field you left out that the
+component reads into fails when it renders, not when it compiles. Empty table cells get
+full-width bars inside their padding; set `--skeleton-width` on a column's class where a
+shorter bar suits it.
+
 ### Keeping a section as it is
 
 `data-skeleton-ignore` leaves an element and everything inside it untouched and clickable.
@@ -283,10 +311,11 @@ The whole library is one stylesheet. Inside `[data-skeleton]`:
    them. The `[data-skeleton]` element counts too: one with no element children, such as
    `<p data-skeleton>12 users</p>`, is drawn like a leaf.
 3. Text elements that hold text get a strike-through 0.6 of a line thick instead, so each
-   wrapped line gets its own bar.
-4. Empty text elements get a `1lh` minimum height and a bar drawn as a gradient, so they
-   look like a line of text rather than a solid block. An element's own `min-height` wins,
-   so a 44px button stays 44px.
+   wrapped line gets its own bar. Text blocks such as paragraphs, list items and table
+   cells keep their borders, so table rows keep their lines.
+4. Empty text elements get a `1lh` minimum height and a bar drawn as a gradient inside
+   their padding, so they look like a line of text rather than a solid block. An
+   element's own `min-height` wins, so a 44px button stays 44px.
 5. `data-skeleton-lines` elements and empty lists get a height of `--skeleton-lines` lines,
    with the lines drawn as gradients.
 6. The container ignores clicks and text selection, except inside `data-skeleton-ignore`.

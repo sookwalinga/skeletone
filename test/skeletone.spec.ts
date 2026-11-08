@@ -77,6 +77,31 @@ test.describe('skeletone', () => {
     expect(await style(page, '#p', 'text-decoration-thickness')).toBe('14.4px')
   })
 
+  test("keeps a text block's own border, such as a table row's, but not a badge's", async ({ page }) => {
+    await mount(
+      page,
+      `<table data-skeleton class="t"><tr><td id="a" class="cell">Admin</td><td id="b" class="cell"></td>
+         <td class="cell"><span id="c" class="badge">Org</span></td></tr></table>`,
+      '.t{border-collapse:collapse}.cell{border-bottom:1px solid rgb(221, 221, 221)}.badge{border:1px solid rgb(0, 0, 255)}',
+    )
+    for (const id of ['#a', '#b']) expect(await style(page, id, 'border-bottom-color')).toBe('rgb(221, 221, 221)')
+    expect(await style(page, '#c', 'border-top-color')).toBe('rgba(0, 0, 0, 0)')
+  })
+
+  test('draws empty-text bars inside the padding, so bars in neighbouring cells stay apart', async ({ page }) => {
+    await mount(
+      page,
+      `<table data-skeleton class="t"><tr><td id="a" class="cell"></td><td class="cell"></td></tr></table>
+       <div data-skeleton><p id="p" class="pad"></p></div>`,
+      '.t{width:400px;border-collapse:collapse}.cell{width:50%;padding:8px 12px}*{box-sizing:border-box}.pad{padding:8px}',
+    )
+    expect(await style(page, '#a', 'background-origin')).toBe('content-box')
+    // A border-box reset can leave a padded element less than a line of content height.
+    // The bar isn't clipped to it.
+    expect(await style(page, '#p', 'background-clip')).toBe('border-box')
+    expect((await box(page, '#p')).height).toBe(24)
+  })
+
   test('sets the bar width of empty text with --skeleton-width', async ({ page }) => {
     await mount(
       page,
