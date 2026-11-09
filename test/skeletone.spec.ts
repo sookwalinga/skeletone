@@ -160,6 +160,18 @@ test.describe('skeletone', () => {
     expect((await box(page, '#b')).height).toBe(44)
   })
 
+  test("doesn't stretch icons, images or controls to their line height", async ({ page }) => {
+    const sized = ['svg', 'img', 'video', 'canvas', 'iframe', 'input', 'select', 'textarea']
+    await mount(
+      page,
+      `<div data-skeleton class="row">${sized.map((t) => `<${t} class="icon" id="${t}"></${t}>`).join('')}
+        <div id="b" class="icon" data-skeleton-block><svg></svg></div><span id="e"></span></div>`,
+      '.row{line-height:46px}.icon{display:inline-block;box-sizing:border-box;width:24px;height:24px}',
+    )
+    for (const t of [...sized, 'b']) expect((await box(page, `#${t}`)).height, t).toBe(24)
+    expect((await box(page, '#e')).height).toBe(46)
+  })
+
   test('leaves a rule line its own height', async ({ page }) => {
     await mount(page, '<div data-skeleton><hr id="r" class="rule"></div>', '.rule{height:0;border:0;border-top:1px solid}')
     expect((await box(page, '#r')).height).toBe(1)
@@ -194,20 +206,18 @@ test.describe('skeletone', () => {
     expect(await style(page, '[data-skeleton]', 'pointer-events')).toBe('none')
   })
 
-  test('waits before showing bars, so a fast load never flashes', async ({ page }) => {
+  test('shows bars at once, with only the pulse, so nested loaders never blink', async ({ page }) => {
     await mount(page, '<div data-skeleton><h3 id="t"></h3><p id="p">Placeholder</p></div>')
-    const opacityAt = (sel: string, ms: number) =>
-      page.locator(sel).evaluate((el, t) => {
+    for (const sel of ['#t', '#p']) {
+      expect(await style(page, sel, 'animation-name')).toBe('skeletone-pulse')
+      const opacity = await page.locator(sel).evaluate((el) => {
         for (const a of el.getAnimations()) {
           a.pause()
-          a.currentTime = (a as CSSAnimation).animationName === 'skeletone-in' ? t : 0
+          a.currentTime = 0
         }
         return getComputedStyle(el).opacity
-      }, ms)
-    for (const sel of ['#t', '#p']) {
-      expect(await opacityAt(sel, 0)).toBe('0')
-      expect(await opacityAt(sel, 100)).toBe('0')
-      expect(await opacityAt(sel, 1000)).toBe('1')
+      })
+      expect(opacity).toBe('1')
     }
   })
 

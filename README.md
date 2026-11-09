@@ -311,15 +311,16 @@ The whole library is one stylesheet. Inside `[data-skeleton]`:
    SVG icons, selects, videos and `data-skeleton-block` elements, get a background in the
    bar colour and a gentle pulse. Checkboxes, radios, sliders, colour pickers, progress bars
    and meters draw their own look over any background, so they're greyed out instead, at
-   their own size. The bars fade in after 150ms, so a load that finishes sooner never flashes
-   them. The `[data-skeleton]` element counts too: one with no element children, such as
+   their own size. The bars show from the first frame, with the outlines around them, so a
+   loader replaced by another one doesn't blink. The `[data-skeleton]` element counts too: one with no element children, such as
    `<p data-skeleton>12 users</p>`, is drawn like a leaf.
 3. Text elements that hold text get a strike-through 0.6 of a line thick instead, so each
    wrapped line gets its own bar. Text blocks such as paragraphs, list items and table
    cells keep their borders, so table rows keep their lines.
-4. Empty text elements get a `1lh` minimum height and a bar drawn as a gradient inside
-   their padding, so they look like a line of text rather than a solid block. An
-   element's own `min-height` wins, so a 44px button stays 44px.
+4. Empty elements get a `1lh` minimum height, and empty text elements a bar drawn as a
+   gradient inside their padding, so they look like a line of text rather than a solid
+   block. An element's own `min-height` wins, so a 44px button stays 44px. Icons, images,
+   videos, canvases, iframes and form controls keep their own size.
 5. `data-skeleton-lines` elements and empty lists get a height of `--skeleton-lines` lines,
    with the lines drawn as gradients.
 6. The container ignores clicks and text selection, except inside `data-skeleton-ignore`.
@@ -349,8 +350,7 @@ The whole library is one stylesheet. Inside `[data-skeleton]`:
   </td></tr></tbody>
   <tbody data-skeleton inert>…</tbody>
   ```
-- The pulse and the fade-in stop when the user asks for reduced motion. The bars then show
-  at once.
+- The pulse stops when the user asks for reduced motion.
 - In forced-colors mode (Windows high contrast), the skeleton keeps its own colours, so its
   text stays hidden, and draws its bars in the system's `GrayText`. `--skeleton-color`
   doesn't apply there.

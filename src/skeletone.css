@@ -45,18 +45,22 @@
   text-decoration-color: transparent;
   text-shadow: none;
 }
-/* Bars fade in after 150ms, so a fast load never flashes them. */
+/* Bars pulse from the first frame, so a loader replaced by another doesn't blink. */
 @media (prefers-reduced-motion: no-preference) {
   :is(:not(:has(*)), svg, select, video):not(svg *, br, hr, wbr, script, style, template):is([data-skeleton]:not([data-skeleton='false']), [data-skeleton]:not([data-skeleton='false']) *):not([data-skeleton-ignore], [data-skeleton-ignore] *),
   [data-skeleton-block]:is([data-skeleton]:not([data-skeleton='false']), [data-skeleton]:not([data-skeleton='false']) *):not([data-skeleton-ignore], [data-skeleton-ignore] *) {
-    animation: skeletone-pulse 1.5s ease-in-out infinite, skeletone-in 0.2s 0.15s backwards;
+    animation: skeletone-pulse 1.5s ease-in-out infinite;
   }
 }
 /* Zero specificity, so a component's own radius (a round avatar) and
    min-height (a touch-target button) win. */
 :where(:not(:has(*)), svg, [data-skeleton-block]):where(:not(svg *, br, hr, wbr, script, style, template)):where([data-skeleton]:not([data-skeleton='false']), [data-skeleton]:not([data-skeleton='false']) *):where(:not([data-skeleton-ignore], [data-skeleton-ignore] *)) {
-  min-height: 1lh;
   border-radius: var(--skeleton-radius, 0.25em);
+}
+/* Empty elements get a line's height. Icons, media and controls have their own size,
+   which 1lh (their own line height, 46px in a big icon button) would stretch. */
+:where(:not(:has(*), svg, svg *, img, video, canvas, iframe, input, select, textarea, br, hr, wbr, script, style, template)):where([data-skeleton]:not([data-skeleton='false']), [data-skeleton]:not([data-skeleton='false']) *):where(:not([data-skeleton-ignore], [data-skeleton-ignore] *)) {
+  min-height: 1lh;
 }
 svg:is([data-skeleton]:not([data-skeleton='false']), [data-skeleton]:not([data-skeleton='false']) *):not([data-skeleton-ignore], [data-skeleton-ignore] *) > * {
   visibility: hidden;
@@ -158,7 +162,4 @@ img:is([data-skeleton]:not([data-skeleton='false']), [data-skeleton]:not([data-s
 
 @keyframes skeletone-pulse {
   50% { opacity: 0.55; }
-}
-@keyframes skeletone-in {
-  from { opacity: 0; }
 }
