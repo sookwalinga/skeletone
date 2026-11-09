@@ -4,6 +4,12 @@
   "description": "Skeleton loaders from your real markup: one attribute turns a component into its own loading skeleton. CSS-only core, optional React, Vue and Svelte helpers.",
   "author": "Samuel Okwalinga",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sookwalinga/skeletone.git"
+  },
+  "homepage": "https://github.com/sookwalinga/skeletone#readme",
+  "bugs": "https://github.com/sookwalinga/skeletone/issues",
   "style": "skeletone.css",
   "main": "skeletone.css",
   "exports": {
@@ -48,7 +54,8 @@
         "types": "./text.d.cts",
         "default": "./text.cjs"
       }
-    }
+    },
+    "./package.json": "./package.json"
   },
   "files": [
     "skeletone.css",
@@ -98,7 +105,9 @@
     "svelte"
   ],
   "scripts": {
+    "build": "node scripts/build.mjs",
     "test": "playwright test",
+    "prepack": "node scripts/build.mjs",
     "pack": "yarn pack --filename skeletone.tgz",
     "typecheck": "tsc -p test/tsconfig.json && tsc -p test/tsconfig.cjs.json"
   },

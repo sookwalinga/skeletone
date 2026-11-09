@@ -1,5 +1,7 @@
 import { expect, test, type Page } from '@playwright/test'
+import fs from 'node:fs'
 import path from 'node:path'
+import { gzipSync } from 'node:zlib'
 
 const CSS = path.join(__dirname, '..', 'skeletone.css')
 
@@ -269,5 +271,57 @@ test.describe('skeletone', () => {
     await page.emulateMedia({ reducedMotion: 'reduce' })
     await mount(page, '<div data-skeleton><h3 id="t"></h3></div>')
     expect(await style(page, '#t', 'animation-name')).toBe('none')
+  })
+
+  test('draws a select as a bar, though its options make it more than a leaf', async ({ page }) => {
+    await mount(
+      page,
+      '<div data-skeleton><select id="s" class="field"><option>Choose a role</option></select></div>',
+      '.field{border:1px solid rgb(0, 0, 255)}',
+    )
+    expect(await style(page, '#s', 'background-color')).toBe('color(srgb 0 0 0 / 0.13)')
+    expect(await style(page, '#s', 'border-top-color')).toBe('rgba(0, 0, 0, 0)')
+  })
+
+  test('draws a video as a bar and moves its poster out of sight', async ({ page }) => {
+    const poster = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='9'%3E%3Crect width='16' height='9' fill='red'/%3E%3C/svg%3E"
+    await mount(
+      page,
+      `<div data-skeleton><video id="v" class="clip" poster="${poster}"><source src="clip.mp4"></video></div>`,
+      '.clip{width:160px;height:90px}',
+    )
+    expect(await style(page, '#v', 'background-color')).toBe('color(srgb 0 0 0 / 0.13)')
+    expect(parseFloat(await style(page, '#v', 'object-position'))).toBeLessThan(-160)
+    expect(await box(page, '#v')).toMatchObject({ width: 160, height: 90 })
+  })
+
+  test('greys out native controls that paint over a background, without resizing them', async ({ page }) => {
+    const controls = `<input type="checkbox" checked><input type="radio" checked><input type="range">
+      <input type="color"><progress value="40" max="100"></progress><meter value="0.3"></meter>`
+    await mount(page, `<div id="real">${controls}</div><div id="skel" data-skeleton>${controls}</div>`)
+    const filters = page.locator('#skel > *').evaluateAll((els) => els.map((el) => getComputedStyle(el).filter))
+    expect(await filters).toEqual(Array(6).fill('grayscale(1) opacity(0.4)'))
+    const widths = (id: string) => page.locator(`#${id} > *`).evaluateAll((els) => els.map((el) => el.getBoundingClientRect().width))
+    expect(await widths('skel')).toEqual(await widths('real'))
+  })
+
+  test('keeps text hidden and bars drawn in forced-colors (high contrast) mode', async ({ page }) => {
+    await page.emulateMedia({ forcedColors: 'active' })
+    const forced = await page.evaluate(() => matchMedia('(forced-colors: active)').matches && CSS.supports('forced-color-adjust', 'none'))
+    test.skip(!forced, 'this browser has no forced-colors mode')
+    await mount(
+      page,
+      `<div data-skeleton><button id="b" class="btn">Save</button><h3 id="h"></h3>
+         <a id="a" href="#" data-skeleton-ignore>Back</a></div><span id="g" class="gray"></span>`,
+      '.gray{color:GrayText;forced-color-adjust:none}',
+    )
+    expect(await style(page, '#b', 'forced-color-adjust')).toBe('none')
+    expect(await style(page, '#b', 'background-color')).toBe(await style(page, '#g', 'color'))
+    expect(await style(page, '#h', 'background-image')).toContain('gradient')
+    expect(await style(page, '#a', 'forced-color-adjust')).toBe('auto')
+  })
+
+  test('ships within the 2 KB gzipped budget', () => {
+    expect(gzipSync(fs.readFileSync(CSS)).length).toBeLessThanOrEqual(2048)
   })
 })

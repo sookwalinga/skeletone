@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="../skeletone.css" />
     <style>
       body { font: 16px/1.5 system-ui, sans-serif; margin: 0; padding: 24px; background: #f6f7f9; color: #1d2433; }
-      body.dark { background: #12151c; color: #e6e8ee; }
+      body.dark { background: #12151c; color: #e6e8ee; color-scheme: dark; }
       .dark .card { background: #1b2030; border-color: #2a3145; }
       .toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 16px; }
       .toolbar button { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border: 1px solid #d5dae3; border-radius: 6px; background: #fff; color: inherit; font: inherit; font-size: 0.85rem; font-weight: 500; cursor: pointer; transition: background-color 0.15s, border-color 0.15s; }
@@ -38,6 +38,8 @@
       .dark .detail-head a { color: #8fb0ff; }
       .detail h2 { margin: 0 0 4px; }
       .detail .tags { flex-wrap: wrap; padding: 0; list-style: none; }
+      .apply { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 16px; font-size: 0.85rem; }
+      .apply label { display: inline-flex; align-items: center; gap: 6px; }
     </style>
   </head>
   <body>
@@ -60,6 +62,11 @@
         <p class="meta"><span data-field="org"></span> · <time data-field="date"></time></p>
         <p data-field="about"></p>
         <ul class="tags" data-field="tags"></ul>
+        <form class="apply">
+          <select><option>Choose a track</option><option>Research</option></select>
+          <label><input type="checkbox" checked /><span>Email me updates</span></label>
+          <progress value="60" max="100"></progress>
+        </form>
       </div>
     </article>
 

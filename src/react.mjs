@@ -1,4 +1,4 @@
-import { createElement, Fragment, version } from 'react'
+import { createElement, forwardRef, Fragment, version } from 'react'
 
 // React 19 treats inert as a boolean. React 18 drops `true` with a warning, so it gets ''.
 const INERT = parseInt(version) >= 19 ? true : ''
@@ -22,7 +22,11 @@ function status(labelAs, label) {
   return message
 }
 
-export function Skeleton({ as = 'div', loading = true, count = 1, label, labelAs = typeof as === 'string' ? as : 'span', children, ...props }) {
+// forwardRef, because React 18 doesn't pass a function component its ref. React 19 would.
+export const Skeleton = forwardRef(function Skeleton(
+  { as = 'div', loading = true, count = 1, label, labelAs = typeof as === 'string' ? as : 'span', children, ...props },
+  ref,
+) {
   const content =
     loading && count > 1
       ? Array.from({ length: count }, (_, i) => createElement(Fragment, { key: i }, children))
@@ -32,6 +36,6 @@ export function Skeleton({ as = 'div', loading = true, count = 1, label, labelAs
     Fragment,
     null,
     loading && label ? status(labelAs, label) : null,
-    createElement(as, { ...skeleton(loading), ...props }, content),
+    createElement(as, { ...skeleton(loading), ...props, ref }, content),
   )
-}
+})

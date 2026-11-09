@@ -3,17 +3,16 @@
 /* Skeleton mode: any element with data-skeleton (except data-skeleton="false"). */
 [data-skeleton]:not([data-skeleton='false']) {
   --_c: var(--skeleton-color, color-mix(in srgb, currentColor 13%, transparent));
-  cursor: progress;
   pointer-events: none;
   user-select: none;
 }
 /* data-skeleton-ignore keeps a section (a back link, a page header) as it is.
-   Zero specificity, so an ignored button's own cursor wins. */
+   Zero specificity, so an ignored button's own user-select wins. */
 :where([data-skeleton]:not([data-skeleton='false']) [data-skeleton-ignore]) {
-  cursor: auto;
   pointer-events: auto;
   user-select: text;
 }
+/* WebKit's own stylesheet gives links no pointer cursor. */
 :where([data-skeleton]:not([data-skeleton='false']) [data-skeleton-ignore]:any-link) {
   cursor: pointer;
 }
@@ -30,10 +29,11 @@
   color: transparent;
 }
 
-/* Leaves (elements with no element children) and whole icons become bars. Each rule
-   also matches the data-skeleton element itself, so one that holds no elements, such as
-   a single line of text, is drawn too. Text blocks keep their borders (row lines). */
-:is(:not(:has(*)), svg):not(svg *, br, hr, wbr, script, style, template):not(:where(h1, h2, h3, h4, h5, h6, p, li, dt, dd, td, th, figcaption, blockquote, caption, legend,
+/* Leaves (elements with no element children), whole icons, selects and videos become
+   bars. Each rule also matches the data-skeleton element itself, so one that holds no
+   elements, such as a single line of text, is drawn too. Text blocks keep their borders
+   (row lines). */
+:is(:not(:has(*)), svg, select, video):not(svg *, br, hr, wbr, script, style, template):not(:where(h1, h2, h3, h4, h5, h6, p, li, dt, dd, td, th, figcaption, blockquote, caption, legend,
     summary)):is([data-skeleton]:not([data-skeleton='false']), [data-skeleton]:not([data-skeleton='false']) *):not([data-skeleton-ignore], [data-skeleton-ignore] *) {
   background: var(--_c);
   border-color: transparent;
@@ -47,7 +47,7 @@
 }
 /* Bars fade in after 150ms, so a fast load never flashes them. */
 @media (prefers-reduced-motion: no-preference) {
-  :is(:not(:has(*)), svg):not(svg *, br, hr, wbr, script, style, template):is([data-skeleton]:not([data-skeleton='false']), [data-skeleton]:not([data-skeleton='false']) *):not([data-skeleton-ignore], [data-skeleton-ignore] *),
+  :is(:not(:has(*)), svg, select, video):not(svg *, br, hr, wbr, script, style, template):is([data-skeleton]:not([data-skeleton='false']), [data-skeleton]:not([data-skeleton='false']) *):not([data-skeleton-ignore], [data-skeleton-ignore] *),
   [data-skeleton-block]:is([data-skeleton]:not([data-skeleton='false']), [data-skeleton]:not([data-skeleton='false']) *):not([data-skeleton-ignore], [data-skeleton-ignore] *) {
     animation: skeletone-pulse 1.5s ease-in-out infinite, skeletone-in 0.2s 0.15s backwards;
   }
@@ -61,10 +61,18 @@
 svg:is([data-skeleton]:not([data-skeleton='false']), [data-skeleton]:not([data-skeleton='false']) *):not([data-skeleton-ignore], [data-skeleton-ignore] *) > * {
   visibility: hidden;
 }
-/* Paint over the image (or the broken-image icon when there is no src). */
+/* Paint over the image (or the broken-image icon when there is no src) and move an
+   image or a video poster out of sight. */
+:is(img, video):is([data-skeleton]:not([data-skeleton='false']), [data-skeleton]:not([data-skeleton='false']) *):not([data-skeleton-ignore], [data-skeleton-ignore] *) {
+  object-position: -200vw 0;
+}
 img:is([data-skeleton]:not([data-skeleton='false']), [data-skeleton]:not([data-skeleton='false']) *):not([data-skeleton-ignore], [data-skeleton-ignore] *) {
   content: linear-gradient(transparent, transparent);
-  object-position: -200vw 0;
+}
+/* These controls draw their own look over any background, and replacing it resizes them,
+   so they're greyed out instead. */
+:is(input:is([type='checkbox'], [type='radio'], [type='range'], [type='color']), progress, meter):is([data-skeleton]:not([data-skeleton='false']), [data-skeleton]:not([data-skeleton='false']) *):not([data-skeleton-ignore], [data-skeleton-ignore] *) {
+  filter: grayscale(1) opacity(0.4);
 }
 
 /* Text that is present (placeholder data) gets a bar per line, as long as the
@@ -114,6 +122,18 @@ img:is([data-skeleton]:not([data-skeleton='false']), [data-skeleton]:not([data-s
 }
 [data-skeleton-block]:is([data-skeleton]:not([data-skeleton='false']), [data-skeleton]:not([data-skeleton='false']) *):not([data-skeleton-ignore], [data-skeleton-ignore] *) * {
   visibility: hidden;
+}
+
+/* Forced colours (Windows high contrast) would show the hidden text and drop the bars, so the
+   skeleton keeps its own colours and draws its bars in the system grey. */
+@media (forced-colors: active) {
+  [data-skeleton]:not([data-skeleton='false']) {
+    --_c: GrayText;
+    forced-color-adjust: none;
+  }
+  :where([data-skeleton]:not([data-skeleton='false']) [data-skeleton-ignore]) {
+    forced-color-adjust: auto;
+  }
 }
 
 /* A loading message for screen readers, placed outside the inert skeleton: hidden on

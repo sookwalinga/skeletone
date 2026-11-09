@@ -3,6 +3,7 @@ import { build, type Plugin } from 'esbuild'
 import fs from 'node:fs'
 import { createRequire } from 'node:module'
 import path from 'node:path'
+import { gzipSync } from 'node:zlib'
 import { compile } from 'svelte/compiler'
 
 const ROOT = path.join(__dirname, '..')
@@ -363,6 +364,38 @@ test.describe('framework helpers', () => {
       expect(inputs.filter((f) => !f.includes('node_modules') && f !== '<stdin>')).toEqual([`${entry}.mjs`])
       const others = ['react', 'vue', 'svelte'].filter((f) => f !== entry)
       expect(inputs.filter((f) => others.some((o) => f.includes(`node_modules/${o}/`)))).toEqual([])
+    }
+  })
+
+  for (const [name, alias] of [['react', undefined], ['react 18', REACT_18]] as const) {
+    test(`${name}: <Skeleton> passes a ref on to its element`, async ({ page }) => {
+      const problems: string[] = []
+      page.on('console', (m) => ['error', 'warning'].includes(m.type()) && problems.push(m.text()))
+      await page.setContent('<div id="root"></div>')
+      const client = `
+        import { createElement as h, createRef } from 'react'
+        import { flushSync } from 'react-dom'
+        import { createRoot } from 'react-dom/client'
+        import { Skeleton } from 'skeletone/react'
+        const ref = createRef()
+        flushSync(() => createRoot(document.getElementById('root')).render(h(Skeleton, { as: 'ul', id: 's', ref })))
+        globalThis.refId = ref.current && ref.current.id`
+      await page.addScriptTag({ content: (await bundle(client, { alias })).code })
+      expect(await page.evaluate(() => (window as any).refId)).toBe('s')
+      expect(problems).toEqual([])
+    })
+  }
+
+  test('text() gives no text for a negative length', async () => {
+    const { text } = await import(path.join(ROOT, 'text.mjs'))
+    expect(text(-7)).toBe('')
+  })
+
+  test('each helper ships within the 500 B gzipped budget, in both builds', () => {
+    for (const entry of ['react', 'vue', 'svelte', 'text']) {
+      for (const ext of ['mjs', 'cjs']) {
+        expect(gzipSync(fs.readFileSync(path.join(ROOT, `${entry}.${ext}`))).length, `${entry}.${ext}`).toBeLessThanOrEqual(500)
+      }
     }
   })
 })

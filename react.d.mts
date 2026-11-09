@@ -1,4 +1,4 @@
-import type { ComponentPropsWithoutRef, ElementType, ReactElement } from 'react'
+import type { ComponentPropsWithRef, ElementType, ReactElement } from 'react'
 
 /** Props that switch skeleton mode on: `data-skeleton` and `inert`. Spread them onto any element. */
 export function skeleton(loading?: boolean): { 'data-skeleton'?: string; inert?: boolean }
@@ -21,7 +21,7 @@ interface OwnProps<C extends ElementType> {
 }
 
 export type SkeletonProps<C extends ElementType = 'div'> = OwnProps<C> &
-  Omit<ComponentPropsWithoutRef<C>, keyof OwnProps<C>>
+  Omit<ComponentPropsWithRef<C>, keyof OwnProps<C>>
 
 /** An element (a div by default) in skeleton mode while `loading` is true. */
 export function Skeleton<C extends ElementType = 'div'>(props: SkeletonProps<C>): ReactElement

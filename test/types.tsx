@@ -1,5 +1,5 @@
 // Compiled by `yarn typecheck`, never run: checks the helpers' type definitions as users see them.
-import type { ReactNode } from 'react'
+import { createRef, type ReactNode } from 'react'
 import { skeleton, Skeleton } from 'skeletone/react'
 import { skeleton as svelteSkeleton } from 'skeletone/svelte'
 import { text } from 'skeletone/text'
@@ -36,3 +36,7 @@ export const placeholder: string = text(40)
 export const tableLabel = <Skeleton as={TableBody} label='Loading roles' labelAs='tbody' />
 // @ts-expect-error labelAs is one of span, tbody, tr or li
 export const badLabelAs = <Skeleton label='Loading' labelAs='div' />
+export const divRef = <Skeleton ref={createRef<HTMLDivElement>()} />
+export const tbodyRef = <Skeleton as='tbody' ref={createRef<HTMLTableSectionElement>()} />
+// @ts-expect-error the ref takes the element's type
+export const badRef = <Skeleton as='tbody' ref={createRef<HTMLAnchorElement>()} />

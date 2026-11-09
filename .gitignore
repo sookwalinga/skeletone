@@ -3,3 +3,6 @@ test-results/
 playwright-report/
 .claude/
 *.tgz
+/skeletone.css
+/*.mjs
+/*.cjs

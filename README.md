@@ -18,7 +18,7 @@ for you.
 </div>
 ```
 
-About 2 KB gzipped.
+About 1.3 KB gzipped.
 
 ## Why
 
@@ -103,7 +103,7 @@ renders, while loading:
 | `as`      | `'div'` | The element or component to render                                         |
 | `labelAs` | `as`    | What wraps the message: `'span'`, `'tbody'`, `'tr'` or `'li'`              |
 
-Other props pass through to the element. With `as`, a table or list can repeat its rows,
+Other props, `ref` included, pass through to the element. With `as`, a table or list can repeat its rows,
 and a component such as MUI's `TableBody` or `Grid` takes the attributes without an extra
 wrapper:
 
@@ -239,10 +239,12 @@ A placeholder record holds only what the component can't render without. A field
 displays can be left out: it renders empty and gets the default bar. Keep the fields it
 reads into, such as an array it maps, an object whose fields it reads or a date it formats,
 because `undefined` throws there. In TypeScript, cast the record to the full type. Types
-don't exist at runtime, so skeletone can't fill the record in from them:
+don't exist at runtime, so skeletone can't fill the record in from them. Type an empty array
+as well, because a bare `[]` is `never[]` and TypeScript rejects the cast:
 
 ```ts
-const LOADING_ROLE = { permissions: [] } as RBACRole // RoleRow maps permissions
+// RoleRow maps permissions
+const LOADING_ROLE = { permissions: [] as RBACRole['permissions'] } as RBACRole
 
 <Skeleton as="tbody" count={5} loading={!roles}>
   {roles
@@ -306,8 +308,10 @@ The whole library is one stylesheet. Inside `[data-skeleton]`:
 
 1. Text is hidden with `-webkit-text-fill-color: transparent`, so it keeps its layout.
 2. Leaf elements, meaning elements with no element children (`:not(:has(*))`), plus whole
-   SVG icons and `data-skeleton-block` elements, get a background in the bar colour and a
-   gentle pulse. The bars fade in after 150ms, so a load that finishes sooner never flashes
+   SVG icons, selects, videos and `data-skeleton-block` elements, get a background in the
+   bar colour and a gentle pulse. Checkboxes, radios, sliders, colour pickers, progress bars
+   and meters draw their own look over any background, so they're greyed out instead, at
+   their own size. The bars fade in after 150ms, so a load that finishes sooner never flashes
    them. The `[data-skeleton]` element counts too: one with no element children, such as
    `<p data-skeleton>12 users</p>`, is drawn like a leaf.
 3. Text elements that hold text get a strike-through 0.6 of a line thick instead, so each
@@ -347,6 +351,9 @@ The whole library is one stylesheet. Inside `[data-skeleton]`:
   ```
 - The pulse and the fade-in stop when the user asks for reduced motion. The bars then show
   at once.
+- In forced-colors mode (Windows high contrast), the skeleton keeps its own colours, so its
+  text stays hidden, and draws its bars in the system's `GrayText`. `--skeleton-color`
+  doesn't apply there.
 
 ## Browser support
 
@@ -365,18 +372,24 @@ Any browser with `:has()`, the `lh` unit and `color-mix()`: Chrome / Edge 111+, 
   them truly empty.
 - **Empty decorative elements** (a 1px divider `<div>`, an icon-font `<i>`) are leaves too,
   so they become bars at least a line tall. Mark them `data-skeleton-ignore`.
-- **Real images** inside a skeleton are painted over. That's intended, but it includes logos.
+- **Real images and video posters** inside a skeleton are painted over. That's intended, but
+  it includes logos.
+- **Embedded frames** (`<iframe>`) show their content, which CSS outside the frame can't
+  hide. Render them once the data has loaded.
 - **A table message adds one `border-spacing` gap** to a table with separate borders (the
   browser default, 2px). Tables with `border-collapse: collapse`, as most styled tables
   have, don't move.
 
 ## Development
 
+The sources are in `src/`. `yarn build` minifies them into the published files at the
+root, and generates each helper's CommonJS copy from its ES module. The tests build first.
+
 ```sh
 yarn install
 yarn test          # Playwright: Chromium, Firefox, WebKit
 yarn typecheck     # the helpers' type definitions
-open demo/index.html
+yarn build && open demo/index.html
 ```
 
 ## License
