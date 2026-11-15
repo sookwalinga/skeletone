@@ -315,6 +315,21 @@ test.describe('skeletone', () => {
     expect(await widths('skel')).toEqual(await widths('real'))
   })
 
+  test("hides a control's own buttons and icons, so it is drawn as a plain bar", async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' })
+    const controls = ['<input type="file">', '<input type="date" value="2026-01-01">', '<input type="time" value="10:00">',
+      '<input type="search" value="abc">', '<input type="number" value="3">']
+    await mount(
+      page,
+      `<div data-skeleton>${controls.map((c) => c.replace('>', ' class="field">')).join('')}<input id="plain" class="field"></div>`,
+      '.field{display:block;box-sizing:border-box;width:240px;height:28px;margin:8px;padding:0 8px;border:0}',
+    )
+    const plain = await page.locator('#plain').screenshot()
+    for (const type of ['file', 'date', 'time', 'search', 'number']) {
+      expect((await page.locator(`[type=${type}]`).screenshot()).equals(plain), type).toBe(true)
+    }
+  })
+
   test('keeps text hidden and bars drawn in forced-colors (high contrast) mode', async ({ page }) => {
     await page.emulateMedia({ forcedColors: 'active' })
     const forced = await page.evaluate(() => matchMedia('(forced-colors: active)').matches && CSS.supports('forced-color-adjust', 'none'))

@@ -18,7 +18,9 @@ for you.
 </div>
 ```
 
-About 1.3 KB gzipped.
+About 1.4 KB gzipped. [Try the demo.](https://sookwalinga.github.io/skeletone/demo/)
+
+![Three cards drawn as skeletons while loading, and the same cards once loaded](demo/preview.png)
 
 ## Why
 
@@ -32,6 +34,28 @@ loads, your component renders as usual with empty values. The CSS then:
 - leaves every container, card, border, gap and grid untouched.
 
 The skeleton is your layout, so it can't drift.
+
+### Compared with
+
+Other libraries also build the skeleton from the real UI. They do it with JavaScript or a
+build step, where skeletone uses a stylesheet:
+
+| Library                  | How the skeleton is made                              | What it needs                              |
+| ------------------------ | ----------------------------------------------------- | ------------------------------------------ |
+| skeletone                | CSS selectors over your markup                        | One attribute. No JavaScript               |
+| [phantom-ui]             | A web component measures each element and overlays blocks | Client-side JavaScript, extra CSS to avoid a flash when server rendering |
+| [boneyard-js]            | A CLI snapshots the page in a headless browser        | A build step, and snapshots to keep fresh  |
+| [shimmer-from-structure] | A wrapper renders the component with mock props and measures it | Client-side JavaScript, an adapter per framework |
+| [Skeleton Mammoth]       | CSS classes                                           | A class on every element, wrappers around images and inputs |
+
+Measuring in JavaScript handles cases a stylesheet can't, such as shadow DOM (see
+Limitations). skeletone suits you when you want no script, no build step
+and a skeleton in the server-rendered HTML.
+
+[phantom-ui]: https://github.com/Aejkatappaja/phantom-ui
+[boneyard-js]: https://github.com/0xGF/boneyard
+[shimmer-from-structure]: https://github.com/darula-hpp/shimmer-from-structure
+[Skeleton Mammoth]: https://github.com/WOLFRIEND/skeleton-mammoth
 
 ## Install
 
@@ -135,13 +159,15 @@ import { vSkeleton } from 'skeletone/vue'
 </script>
 
 <template>
+  <span v-if="loading" role="status" class="skeletone-status">Loading articles</span>
   <section v-skeleton="loading">…</section>
 </template>
 ```
 
 Outside `<script setup>`, register it with `app.directive('skeleton', vSkeleton)`.
-`v-skeleton` with no value is on. For a loading message, add a `.skeletone-status` span
-(see Accessibility).
+`v-skeleton` with no value is on. The span is the loading message for screen readers, which
+React's `label` renders for you. Beside a table body, a row or a list item, wrap it as shown
+in Accessibility.
 
 **Svelte**
 
@@ -154,6 +180,9 @@ Outside `<script setup>`, register it with `app.directive('skeleton', vSkeleton)
 <section {...skeleton(loading)}>…</section>
 ```
 
+The span is the loading message for screen readers, which React's `label` renders for you.
+Beside a table body, a row or a list item, wrap it as shown in Accessibility.
+
 **HTML and other frameworks**
 
 ```html
@@ -164,6 +193,19 @@ Remove both attributes to show the content. skeletone also treats `data-skeleton
 as off. `inert` is a boolean attribute, so `inert="false"` still makes the element inert:
 remove it, which most frameworks do when you pass `undefined`. In React 18 without the
 helper, write `inert={isLoading ? '' : undefined}`.
+
+Any framework that can set two attributes works the same way:
+
+```html
+<!-- Angular -->
+<section [attr.data-skeleton]="loading ? '' : null" [attr.inert]="loading ? '' : null">…</section>
+
+<!-- Solid -->
+<section data-skeleton={loading() ? '' : undefined} attr:inert={loading() ? '' : undefined}>…</section>
+
+<!-- Astro -->
+<section data-skeleton={loading} inert={loading}>…</section>
+```
 
 ### Paragraphs
 
@@ -311,7 +353,9 @@ The whole library is one stylesheet. Inside `[data-skeleton]`:
    SVG icons, selects, videos and `data-skeleton-block` elements, get a background in the
    bar colour and a gentle pulse. Checkboxes, radios, sliders, colour pickers, progress bars
    and meters draw their own look over any background, so they're greyed out instead, at
-   their own size. The bars show from the first frame, with the outlines around them, so a
+   their own size. A control's own parts are hidden: a file input's button and file name, a
+   date or time picker's icon, a search field's clear button and a number field's arrows.
+   The bars show from the first frame, with the outlines around them, so a
    loader replaced by another one doesn't blink. The `[data-skeleton]` element counts too: one with no element children, such as
    `<p data-skeleton>12 users</p>`, is drawn like a leaf.
 3. Text elements that hold text get a strike-through 0.6 of a line thick instead, so each
@@ -375,7 +419,15 @@ Any browser with `:has()`, the `lh` unit and `color-mix()`: Chrome / Edge 111+, 
 - **Real images and video posters** inside a skeleton are painted over. That's intended, but
   it includes logos.
 - **Embedded frames** (`<iframe>`) show their content, which CSS outside the frame can't
-  hide. Render them once the data has loaded.
+  hide. Render them once the data has loaded. A `<canvas>` shows what was drawn on it, so
+  draw once the data has loaded.
+- **Backgrounds on containers and pseudo-elements** stay as they are: a hero's
+  `background-image`, a custom checkbox drawn with `::before`. Only leaves become bars. Put
+  `data-skeleton-block` on the element, or on the parent of one with a pseudo-element, to
+  draw it as one bar.
+- **Shadow DOM**: a stylesheet doesn't reach inside a web component's shadow root, so its
+  contents stay as they are. Add skeletone.css to the shadow root and set `data-skeleton` on
+  an element inside it.
 - **A table message adds one `border-spacing` gap** to a table with separate borders (the
   browser default, 2px). Tables with `border-collapse: collapse`, as most styled tables
   have, don't move.

@@ -143,10 +143,14 @@
         detail.querySelector('.body').inert = !loaded
         document.getElementById('toggle').textContent = loaded ? 'Show skeleton' : 'Show loaded content'
       }
-      document.getElementById('theme').onclick = (e) => {
-        const dark = document.body.classList.toggle('dark')
-        e.currentTarget.textContent = dark ? 'Switch to light mode' : 'Switch to dark mode'
+      // Dark mode follows the system setting first, then the button.
+      const theme = document.getElementById('theme')
+      function setDark(dark) {
+        document.body.classList.toggle('dark', dark)
+        theme.textContent = dark ? 'Switch to light mode' : 'Switch to dark mode'
       }
+      setDark(matchMedia('(prefers-color-scheme: dark)').matches)
+      theme.onclick = () => setDark(!document.body.classList.contains('dark'))
     </script>
   </body>
 </html>

@@ -73,6 +73,16 @@ svg:is([data-skeleton]:not([data-skeleton='false']), [data-skeleton]:not([data-s
 img:is([data-skeleton]:not([data-skeleton='false']), [data-skeleton]:not([data-skeleton='false']) *):not([data-skeleton-ignore], [data-skeleton-ignore] *) {
   content: linear-gradient(transparent, transparent);
 }
+/* A control's own parts would show over its bar: a picker's icon, a search field's clear
+   button, a number field's arrows, and a file input's button and file name. */
+input:is([data-skeleton]:not([data-skeleton='false']), [data-skeleton]:not([data-skeleton='false']) *):not([data-skeleton-ignore], [data-skeleton-ignore] *)::-webkit-calendar-picker-indicator,
+input:is([data-skeleton]:not([data-skeleton='false']), [data-skeleton]:not([data-skeleton='false']) *):not([data-skeleton-ignore], [data-skeleton-ignore] *)::-webkit-search-cancel-button,
+input:is([data-skeleton]:not([data-skeleton='false']), [data-skeleton]:not([data-skeleton='false']) *):not([data-skeleton-ignore], [data-skeleton-ignore] *)::-webkit-inner-spin-button {
+  opacity: 0;
+}
+input[type='file']:is([data-skeleton]:not([data-skeleton='false']), [data-skeleton]:not([data-skeleton='false']) *):not([data-skeleton-ignore], [data-skeleton-ignore] *) {
+  text-indent: -999em;
+}
 /* These controls draw their own look over any background, and replacing it resizes them,
    so they're greyed out instead. */
 :is(input:is([type='checkbox'], [type='radio'], [type='range'], [type='color']), progress, meter):is([data-skeleton]:not([data-skeleton='false']), [data-skeleton]:not([data-skeleton='false']) *):not([data-skeleton-ignore], [data-skeleton-ignore] *) {

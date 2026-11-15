@@ -11,7 +11,6 @@
   "homepage": "https://github.com/sookwalinga/skeletone#readme",
   "bugs": "https://github.com/sookwalinga/skeletone/issues",
   "style": "skeletone.css",
-  "main": "skeletone.css",
   "exports": {
     ".": "./skeletone.css",
     "./skeletone.css": "./skeletone.css",

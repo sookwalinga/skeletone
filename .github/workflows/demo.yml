@@ -1,0 +1,30 @@
+name: demo
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}demo/
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: yarn
+      - run: yarn install --frozen-lockfile
+      - run: yarn build
+      # The demo links ../skeletone.css, so the site keeps the same layout as the repository.
+      - run: mkdir _site && cp -r demo skeletone.css _site/
+      - uses: actions/upload-pages-artifact@v4
+      - id: deploy
+        uses: actions/deploy-pages@v4
