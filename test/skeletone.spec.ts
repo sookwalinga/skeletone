@@ -278,6 +278,23 @@ test.describe('skeletone', () => {
     expect(await style(page, '#off', '-webkit-text-fill-color')).not.toBe('rgba(0, 0, 0, 0)')
   })
 
+  test('keeps the colour of an element that holds others, and draws its contents as bars', async ({ page }) => {
+    await mount(
+      page,
+      `<div data-skeleton>
+         <button id="b" class="btn"><svg id="i" viewBox="0 0 4 4"><circle cx="2" cy="2" r="2"/></svg><span id="l">Save</span></button>
+       </div>`,
+      `.btn{display:inline-flex;gap:8px;padding:6px 12px;border:0;background:rgb(0, 102, 204);color:rgb(255, 255, 255)}
+       svg{width:16px;height:16px}`,
+    )
+    expect(await style(page, '#b', 'background-color')).toBe('rgb(0, 102, 204)')
+    const bar = await style(page, '#i', 'background-color')
+    expect(bar).not.toBe('rgba(0, 0, 0, 0)')
+    expect(await style(page, '#l', '-webkit-text-fill-color')).toBe('rgba(0, 0, 0, 0)')
+    expect(await style(page, '#l', 'text-decoration-line')).toBe('line-through')
+    expect(await style(page, '#l', 'text-decoration-color')).toBe(bar)
+  })
+
   test('draws a data-skeleton-block element as one bar, whatever it holds', async ({ page }) => {
     await mount(
       page,
