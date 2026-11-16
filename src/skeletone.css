@@ -1,8 +1,13 @@
 /*! skeletone — skeleton loaders from your real markup. (c) 2026 Samuel Okwalinga, MIT */
 
 /* Skeleton mode: any element with data-skeleton (except data-skeleton="false"). */
-[data-skeleton]:not([data-skeleton='false']) {
+/* The bar colour, worked out on every element, so --skeleton-color set on a section inside
+   the skeleton (a dark panel) tints that section's bars. */
+[data-skeleton]:not([data-skeleton='false']),
+[data-skeleton]:not([data-skeleton='false']) * {
   --_c: var(--skeleton-color, color-mix(in srgb, currentColor 13%, transparent));
+}
+[data-skeleton]:not([data-skeleton='false']) {
   pointer-events: none;
   user-select: none;
 }
@@ -141,8 +146,11 @@ input[type='file']:is([data-skeleton]:not([data-skeleton='false']), [data-skelet
 /* Forced colours (Windows high contrast) would show the hidden text and drop the bars, so the
    skeleton keeps its own colours and draws its bars in the system grey. */
 @media (forced-colors: active) {
-  [data-skeleton]:not([data-skeleton='false']) {
+  [data-skeleton]:not([data-skeleton='false']),
+  [data-skeleton]:not([data-skeleton='false']) * {
     --_c: GrayText;
+  }
+  [data-skeleton]:not([data-skeleton='false']) {
     forced-color-adjust: none;
   }
   :where([data-skeleton]:not([data-skeleton='false']) [data-skeleton-ignore]) {

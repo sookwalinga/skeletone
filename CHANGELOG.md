@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- `--skeleton-color` set on a section inside a skeleton now tints that section's bars, so a
+  dark or inverted panel can show its skeleton.
+
+## Unreleased
+
 - A `<div>` that holds only text gets a bar per line, as long as the text, instead of a
   block across its whole width. An empty `<div>` is still drawn as a block, but a
   whitespace-only one now counts as text and gets no bar.

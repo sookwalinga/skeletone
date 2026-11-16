@@ -212,6 +212,17 @@ test.describe('skeletone', () => {
     expect(await style(page, '#i', 'background-color')).toBe('rgb(1, 2, 3)')
   })
 
+  test('lets --skeleton-color on a dark section inside the skeleton tint only its bars', async ({ page }) => {
+    await mount(
+      page,
+      '<div data-skeleton><div class="panel"><img id="in" alt=""><span id="t">Hi</span></div><img id="out" alt=""></div>',
+      '.panel{background:#111;color:#fff;--skeleton-color:rgb(1, 2, 3)}',
+    )
+    expect(await style(page, '#in', 'background-color')).toBe('rgb(1, 2, 3)')
+    expect(await style(page, '#t', 'text-decoration-color')).toBe('rgb(1, 2, 3)')
+    expect(await style(page, '#out', 'background-color')).not.toBe('rgb(1, 2, 3)')
+  })
+
   test('beats ordinary component class styles', async ({ page }) => {
     await mount(page, '<div data-skeleton><span id="t" class="tag"></span></div>', '.tag{background:blue}')
     expect(await style(page, '#t', 'background-image')).toContain('gradient')
@@ -353,11 +364,13 @@ test.describe('skeletone', () => {
     await mount(
       page,
       `<div data-skeleton><button id="b" class="btn">Save</button><h3 id="h"></h3>
+         <div class="panel"><img id="i" alt=""></div>
          <a id="a" href="#" data-skeleton-ignore>Back</a></div><span id="g" class="gray"></span>`,
-      '.gray{color:GrayText;forced-color-adjust:none}',
+      '.gray{color:GrayText;forced-color-adjust:none}.panel{--skeleton-color:rgb(1, 2, 3)}',
     )
     expect(await style(page, '#b', 'forced-color-adjust')).toBe('none')
     expect(await style(page, '#b', 'background-color')).toBe(await style(page, '#g', 'color'))
+    expect(await style(page, '#i', 'background-color')).toBe(await style(page, '#g', 'color'))
     expect(await style(page, '#h', 'background-image')).toContain('gradient')
     expect(await style(page, '#a', 'forced-color-adjust')).toBe('auto')
   })

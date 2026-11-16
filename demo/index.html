@@ -40,6 +40,9 @@
       .detail .tags { flex-wrap: wrap; padding: 0; list-style: none; }
       .apply { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 16px; font-size: 0.85rem; }
       .apply label { display: inline-flex; align-items: center; gap: 6px; }
+      /* An inverted section needs its own bar colour. */
+      .callout { margin: 16px 0 0; padding: 10px 14px; border-radius: 8px; background: #1d2433; color: #fff; font-size: 0.85rem; --skeleton-color: rgb(255 255 255 / 0.2); }
+      .dark .callout { background: #e6e8ee; color: #12151c; --skeleton-color: rgb(0 0 0 / 0.13); }
     </style>
   </head>
   <body>
@@ -62,6 +65,7 @@
         <p class="meta"><span data-field="org"></span> · <time data-field="date"></time></p>
         <p data-field="about"></p>
         <ul class="tags" data-field="tags"></ul>
+        <p class="callout"><span>Applications close</span> <time data-field="deadline"></time></p>
         <form class="apply">
           <select><option>Choose a track</option><option>Research</option></select>
           <label><input type="checkbox" checked /><span>Email me updates</span></label>
@@ -100,9 +104,9 @@
       ]
       const DETAIL = { title: 'Climate Fellowship', org: 'Green Futures', date: '12 Nov 2026',
         about: 'A six-month fellowship for young climate leaders. Fellows get a mentor, a monthly stipend and a budget for a community project, then present their work at a final showcase in Nairobi.',
-        tags: ['SDG 13', 'Remote', 'Stipend', 'Mentoring'] }
+        tags: ['SDG 13', 'Remote', 'Stipend', 'Mentoring'], deadline: '30 Nov 2026' }
       const PLACEHOLDER = { title: 'xxxxxxxxxxxxxxxxx', org: 'xxxxxxxxxx', date: 'xxxxxxxxxx',
-        about: 'x'.repeat(140).replace(/(.{9})/g, '$1 '), tags: ['xxxxx', 'xxxxx', 'xxxxx'] }
+        about: 'x'.repeat(140).replace(/(.{9})/g, '$1 '), tags: ['xxxxx', 'xxxxx', 'xxxxx'], deadline: 'xxxxxxxxxx' }
       const detail = document.getElementById('detail')
       function renderDetail(d) {
         for (const el of detail.querySelectorAll('[data-field]')) {

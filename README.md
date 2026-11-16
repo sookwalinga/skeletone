@@ -329,7 +329,8 @@ what's inside. It keeps its own size and corners, and does nothing outside skele
 
 ## Customise
 
-All settings are CSS custom properties. Set them on the container or anywhere above it.
+All settings are CSS custom properties. Set them on the container, anywhere above it, or on
+a section inside it to change just that section.
 
 | Property                   | Default                                  | What it does                       |
 | -------------------------- | ---------------------------------------- | ---------------------------------- |
@@ -342,7 +343,12 @@ All settings are CSS custom properties. Set them on the container or anywhere ab
 | `--skeleton-lines`         | `3`                                      | Line count of a `data-skeleton-lines` element or an empty list |
 
 Bars take their colour from the container's text colour, so dark mode works without any
-configuration.
+configuration. A dark or inverted section inside a light skeleton (or the other way round)
+needs its own colour, since its bars would match its background:
+
+```css
+.dark-panel { --skeleton-color: rgb(255 255 255 / 0.13); }
+```
 
 ## How it works
 
@@ -427,6 +433,9 @@ Any browser with `:has()`, the `lh` unit and `color-mix()`: Chrome / Edge 111+, 
   `background-image`, a custom checkbox drawn with `::before`. Only leaves become bars. Put
   `data-skeleton-block` on the element, or on the parent of one with a pseudo-element, to
   draw it as one bar.
+- **Dark or inverted sections** get bars in the container's text colour, not their own, so
+  on a dark panel in a light skeleton they don't show. Set `--skeleton-color` on the
+  section (see Customise).
 - **Shadow DOM**: a stylesheet doesn't reach inside a web component's shadow root, so its
   contents stay as they are. Add skeletone.css to the shadow root and set `data-skeleton` on
   an element inside it.
