@@ -19,6 +19,7 @@ export default async function buildPackage() {
   }
 }
 
+if (import.meta.main === undefined) throw new Error('Building needs Node 22.18+ or 24.2+ (see .nvmrc)')
 if (import.meta.main) await buildPackage()
 
 // A helper only imports named bindings from its framework and exports named bindings, so two
