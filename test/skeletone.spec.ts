@@ -34,6 +34,13 @@ const differentPixels = (page: Page, a: Buffer, b: Buffer) =>
     return x.length === y.length ? count : -1
   }, [a.toString('base64'), b.toString('base64')])
 
+// Three line bars, the last one shorter, drawn without the library. At 20px/1.5 every bar
+// edge falls on a whole pixel.
+const LINES_REF = '<div id="ref" class="big"><i></i><i></i><i></i></div>'
+const LINES_CSS =
+  '.big{width:300px;margin:0;padding:0;font-size:20px}#ref{display:grid;gap:12px;box-sizing:border-box;height:90px;padding:6px 0}' +
+  '#ref i{background:rgb(0 0 0/.13)}#ref i:last-child{width:60%}'
+
 test.describe('skeletone', () => {
   test('gives an empty heading a visible bar 40% of the container wide', async ({ page }) => {
     await mount(page, '<div data-skeleton style="width:400px"><h3 id="t"></h3></div>')
@@ -66,9 +73,14 @@ test.describe('skeletone', () => {
   })
 
   test('draws three line bars for a bare data-skeleton-lines, the last one shorter', async ({ page }) => {
-    await mount(page, '<div data-skeleton><p id="p" data-skeleton-lines></p></div>')
+    await page.emulateMedia({ reducedMotion: 'reduce' })
+    await mount(
+      page,
+      `<div data-skeleton><p id="p" data-skeleton-lines></p><p id="big" class="big" data-skeleton-lines></p></div>${LINES_REF}`,
+      LINES_CSS,
+    )
     expect((await box(page, '#p')).height).toBe(72)
-    expect(await style(page, '#p', 'background-size')).toMatch(/^60% /)
+    expect(await differentPixels(page, await page.locator('#big').screenshot(), await page.locator('#ref').screenshot())).toBe(0)
   })
 
   test('takes the line count from --skeleton-lines on a data-skeleton-lines element', async ({ page }) => {
@@ -82,13 +94,14 @@ test.describe('skeletone', () => {
   })
 
   test('draws an empty list as rows, so a list mapped from no data still shows', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' })
     await mount(
       page,
-      '<div data-skeleton><ul id="u" class="list"></ul><ol id="o" class="list long"></ol></div>',
-      '.list{margin:0;padding:0}.long{--skeleton-lines: 5}',
+      `<div data-skeleton><ul id="u" class="list"></ul><ol id="o" class="list long"></ol><ul id="big" class="big"></ul></div>${LINES_REF}`,
+      `.list{margin:0;padding:0}.long{--skeleton-lines: 5}${LINES_CSS}`,
     )
     expect((await box(page, '#u')).height).toBe(72)
-    expect(await style(page, '#u', 'background-size')).toMatch(/^60% /)
+    expect(await differentPixels(page, await page.locator('#big').screenshot(), await page.locator('#ref').screenshot())).toBe(0)
     expect((await box(page, '#o')).height).toBe(120)
   })
 
@@ -405,16 +418,17 @@ test.describe('skeletone', () => {
   test("hides a control's own buttons and icons, so it is drawn as a plain bar", async ({ page }) => {
     await page.emulateMedia({ reducedMotion: 'reduce' })
     const controls = ['<input type="file">', '<input type="date" value="2026-01-01">', '<input type="time" value="10:00">',
-      '<input type="search" value="abc">', '<input type="number" value="3">']
+      '<input type="datetime-local" value="2026-01-01T10:00">', '<input type="search" value="abc">', '<input type="number" value="3">', '<select><option>abc</option></select>']
     await mount(
       page,
       `<div data-skeleton>${controls.map((c) => c.replace('>', ' class="field">')).join('')}<input id="plain" class="field"></div>`,
-      '.field{display:block;box-sizing:border-box;width:240px;height:28px;margin:8px;padding:0 8px;border:0}',
+      '.field{display:block;box-sizing:border-box;width:240px;height:28px;margin:8px;padding:0 8px;border:0;border-radius:5px}', // WebKit draws a select with this radius, whatever its class says
     )
     const plain = await page.locator('#plain').screenshot()
-    for (const type of ['file', 'date', 'time', 'search', 'number']) {
-      expect((await page.locator(`[type=${type}]`).screenshot()).equals(plain), type).toBe(true)
+    for (const type of ['file', 'date', 'time', 'datetime-local', 'search', 'number']) {
+      expect.soft((await page.locator(`[type=${type}]`).screenshot()).equals(plain), type).toBe(true)
     }
+    expect.soft((await page.locator('select').screenshot()).equals(plain), 'select').toBe(true)
   })
 
   test('keeps text hidden and bars drawn in forced-colors (high contrast) mode', async ({ page }) => {

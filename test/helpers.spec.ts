@@ -335,7 +335,8 @@ test.describe('framework helpers', () => {
         .locator(sel)
         .evaluate((el) => [el.getBoundingClientRect().height, parseFloat(getComputedStyle(el).lineHeight), el.scrollWidth - el.clientWidth])
       expect(overflow).toBe(0)
-      expect(height / lineHeight).toBeGreaterThanOrEqual(lines)
+      // Rounded: WebKit on Linux measures two lines as 1.9999 of them.
+      expect(Math.round(height / lineHeight)).toBeGreaterThanOrEqual(lines)
     }
   })
 

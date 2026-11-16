@@ -86,8 +86,23 @@ input:is([data-skeleton]:not([data-skeleton='false']), [data-skeleton]:not([data
 input:is([data-skeleton]:not([data-skeleton='false']), [data-skeleton]:not([data-skeleton='false']) *):not([data-skeleton-ignore], [data-skeleton-ignore] *)::-webkit-inner-spin-button {
   opacity: 0;
 }
+/* Firefox has no selector for a number field's arrows. */
+input[type='number']:is([data-skeleton]:not([data-skeleton='false']), [data-skeleton]:not([data-skeleton='false']) *):not([data-skeleton-ignore], [data-skeleton-ignore] *) {
+  appearance: textfield;
+}
 input[type='file']:is([data-skeleton]:not([data-skeleton='false']), [data-skeleton]:not([data-skeleton='false']) *):not([data-skeleton-ignore], [data-skeleton-ignore] *) {
   text-indent: -999em;
+}
+/* No selector reaches a select's arrow, or a date or time picker's icon in Firefox. Both
+   are drawn in the control's text colour, so that is made clear, and the bar keeps the
+   colour it had. */
+@supports (color: rgb(from currentColor r g b)) {
+  @media (forced-colors: none) {
+    :is(select, [type^='date'], [type='time']):is([data-skeleton]:not([data-skeleton='false']), [data-skeleton]:not([data-skeleton='false']) *):not([data-skeleton-ignore], [data-skeleton-ignore] *) {
+      --_c: var(--skeleton-color, rgb(from currentColor r g b / calc(alpha * 130)));
+      color: rgb(from currentColor r g b / calc(alpha * 0.001)) !important;
+    }
+  }
 }
 /* These controls draw their own look over any background, and replacing it resizes them,
    so they're greyed out instead. */
@@ -123,14 +138,13 @@ input[type='file']:is([data-skeleton]:not([data-skeleton='false']), [data-skelet
 }
 
 /* Paragraphs (data-skeleton-lines) and empty lists, with the count in
-   --skeleton-lines (default 3). */
+   --skeleton-lines (default 3). One line is tiled and the clip cuts the last one short: a
+   repeating gradient would draw them all, but Firefox draws its bars thin in a color-mix()
+   colour. */
 :is([data-skeleton-lines], :where(ul, ol):empty):is([data-skeleton]:not([data-skeleton='false']), [data-skeleton]:not([data-skeleton='false']) *):not([data-skeleton-ignore], [data-skeleton-ignore] *) {
   height: calc(var(--skeleton-lines, 3) * 1lh);
-  background:
-    linear-gradient(var(--_c) 0 0) 0 calc(100% - 0.2lh) / var(--skeleton-last-line, 60%) 0.6lh
-      no-repeat,
-    repeating-linear-gradient(transparent 0 0.2lh, var(--_c) 0.2lh 0.8lh, transparent 0.8lh 1lh)
-      0 0 / 100% calc(100% - 1lh) no-repeat;
+  background: linear-gradient(transparent 20%, var(--_c) 0 80%, transparent 0) 0 100% / 100% 1lh;
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 1lh), var(--skeleton-last-line, 60%) calc(100% - 1lh), var(--skeleton-last-line, 60%) 100%, 0 100%);
 }
 
 /* data-skeleton-block draws an element as one bar, whatever it holds: an avatar with a

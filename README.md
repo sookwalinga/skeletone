@@ -18,7 +18,7 @@ for you.
 </div>
 ```
 
-About 1.4 KB gzipped. [Try the demo.](https://sookwalinga.github.io/skeletone/demo/)
+About 1.6 KB gzipped. [Try the demo.](https://sookwalinga.github.io/skeletone/demo/)
 
 ![Three cards drawn as skeletons while loading, and the same cards once loaded](demo/preview.png)
 
@@ -374,7 +374,8 @@ The whole library is one stylesheet. Inside `[data-skeleton]`:
    bar colour and a gentle pulse (or a shimmer). Checkboxes, radios, sliders, colour pickers, progress bars
    and meters draw their own look over any background, so they're greyed out instead, at
    their own size. A control's own parts are hidden: a file input's button and file name, a
-   date or time picker's icon, a search field's clear button and a number field's arrows.
+   date or time picker's icon, a search field's clear button, a number field's arrows and
+   a select's arrow.
    The bars show from the first frame, with the outlines around them, so a
    loader replaced by another one doesn't blink. The `[data-skeleton]` element counts too: one with no element children, such as
    `<p data-skeleton>12 users</p>`, is drawn like a leaf.
@@ -424,6 +425,10 @@ The whole library is one stylesheet. Inside `[data-skeleton]`:
 
 Any browser with `:has()`, the `lh` unit and `color-mix()`: Chrome / Edge 111+, Safari
 16.4+, Firefox 121+. Older browsers show the empty layout without bars.
+
+Hiding a select's arrow, and a date or time picker's icon in Firefox, also needs relative
+colours from `currentColor` (`rgb(from currentColor r g b)`), which the current version of
+each browser has. An older version inside the baseline shows the arrow or icon over the bar.
 
 ## Limitations
 

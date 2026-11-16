@@ -1,17 +1,18 @@
 # Changelog
 
-## Unreleased
+## 0.2.0
 
 - `--skeleton-color` set on a section inside a skeleton now tints that section's bars, so a
   dark or inverted panel can show its skeleton.
 - `--skeleton-animation: skeletone-shimmer` sweeps a shimmer across the bars instead of the
   pulse. The pulse stays the default.
-
-## Unreleased
-
 - A `<div>` that holds only text gets a bar per line, as long as the text, instead of a
   block across its whole width. An empty `<div>` is still drawn as a block, but a
   whitespace-only one now counts as text and gets no bar.
+- A select's arrow is hidden.
+- Firefox: a date or time picker's icon and a number field's arrows are hidden, and the
+  first lines of a `data-skeleton-lines` paragraph or an empty list are as thick as the last
+  one. They were drawn thin.
 
 ## 0.1.0
 
