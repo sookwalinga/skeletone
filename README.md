@@ -473,6 +473,11 @@ yarn typecheck     # the helpers' type definitions
 yarn build && open demo/index.html
 ```
 
+`test/visual.spec.ts` compares the demo with stored screenshots, light and dark, in each
+engine. Fonts differ between systems, so it runs only on Linux, in CI's Playwright
+container, and is skipped elsewhere. After a deliberate visual change, run the
+`screenshots` workflow and commit the images it uploads.
+
 ## License
 
 MIT

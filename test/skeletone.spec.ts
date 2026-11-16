@@ -14,6 +14,26 @@ const style = (page: Page, sel: string, prop: string) =>
   page.locator(sel).evaluate((el, p) => getComputedStyle(el).getPropertyValue(p), prop)
 const box = async (page: Page, sel: string) => (await page.locator(sel).boundingBox())!
 
+// Counts the pixels where two same-sized screenshots differ by more than antialiasing does
+// (Chromium shades an image's rounded edge a level off a div's). A bar is a 13% tint, about
+// 33 levels from the background, so a wrong shape still counts.
+const differentPixels = (page: Page, a: Buffer, b: Buffer) =>
+  page.evaluate(async (pngs) => {
+    const [x, y] = await Promise.all(pngs.map(async (png) => {
+      const img = new Image()
+      img.src = `data:image/png;base64,${png}`
+      await img.decode()
+      const ctx = new OffscreenCanvas(img.width, img.height).getContext('2d')!
+      ctx.drawImage(img, 0, 0)
+      return ctx.getImageData(0, 0, img.width, img.height).data
+    }))
+    let count = 0
+    for (let i = 0; i < x.length; i += 4) {
+      if ([0, 1, 2, 3].some((c) => Math.abs(x[i + c] - y[i + c]) > 8)) count++
+    }
+    return x.length === y.length ? count : -1
+  }, [a.toString('base64'), b.toString('base64')])
+
 test.describe('skeletone', () => {
   test('gives an empty heading a visible bar 40% of the container wide', async ({ page }) => {
     await mount(page, '<div data-skeleton style="width:400px"><h3 id="t"></h3></div>')
@@ -413,6 +433,32 @@ test.describe('skeletone', () => {
     expect(await style(page, '#i', 'background-color')).toBe(await style(page, '#g', 'color'))
     expect(await style(page, '#h', 'background-image')).toContain('gradient')
     expect(await style(page, '#a', 'forced-color-adjust')).toBe('auto')
+  })
+
+  // A pixel check against a shape drawn without the library. Computed styles missed a
+  // broken-image icon and a squared avatar that both showed on screen.
+  test('draws images, a video and an icon as a plain bar in their own shape', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' })
+    const red = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='4'%3E%3Crect width='4' height='4' fill='red'/%3E%3C/svg%3E"
+    const media = {
+      empty: '<img class="avatar" alt="">',
+      broken: '<img class="avatar" alt="" src="missing.png">',
+      loaded: `<img class="avatar" alt="" src="${red}">`,
+      video: `<video class="avatar" poster="${red}"></video>`,
+      icon: '<svg class="avatar" viewBox="0 0 4 4"><circle cx="2" cy="2" r="2" fill="red"/></svg>',
+    }
+    await mount(
+      page,
+      `<div class="cell"><div class="avatar ref"></div></div>
+       <div data-skeleton>${Object.entries(media).map(([id, el]) => `<div id="${id}" class="cell">${el}</div>`).join('')}</div>`,
+      `.cell{width:56px;height:56px;padding:8px;box-sizing:border-box}.avatar{display:block;width:40px;height:40px;border-radius:50%}
+       .ref{background:color-mix(in srgb, currentColor 13%, transparent)}`,
+    )
+    await page.waitForFunction(() => [...document.images].every((i) => i.complete))
+    const shape = await page.locator('.cell:has(.ref)').screenshot()
+    for (const id of Object.keys(media)) {
+      expect(await differentPixels(page, await page.locator(`#${id}`).screenshot(), shape), id).toBe(0)
+    }
   })
 
   test('ships within the 2 KB gzipped budget', () => {

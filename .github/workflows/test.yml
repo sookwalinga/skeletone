@@ -8,13 +8,22 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    # The image's tag matches @playwright/test, so its browsers and fonts are the ones the
+    # stored demo screenshots were made with.
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.0-noble
+      options: --user 1001
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
         with:
           node-version-file: .nvmrc
-          cache: yarn
+      - run: corepack enable
       - run: yarn install --frozen-lockfile
-      - run: yarn playwright install --with-deps chromium firefox webkit
       - run: yarn test
       - run: yarn typecheck
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: test-results
+          path: test-results/

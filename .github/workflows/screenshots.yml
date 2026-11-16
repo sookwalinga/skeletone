@@ -1,0 +1,24 @@
+name: screenshots
+
+# Run by hand after a deliberate visual change. It remakes the demo screenshots that differ
+# and uploads them, to review and commit.
+on: workflow_dispatch
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.0-noble
+      options: --user 1001
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+      - run: corepack enable
+      - run: yarn install --frozen-lockfile
+      - run: yarn playwright test test/visual.spec.ts --update-snapshots=changed
+      - uses: actions/upload-artifact@v4
+        with:
+          name: screenshots
+          path: test/visual.spec.ts-snapshots/
