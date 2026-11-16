@@ -112,6 +112,14 @@ test.describe('skeletone', () => {
     expect(await style(page, '#p', 'text-decoration-thickness')).toBe('14.4px')
   })
 
+  test('draws text broken by <br> as line bars, like any other text', async ({ page }) => {
+    await mount(page, '<div data-skeleton><p id="p">12 Main Street<br>Kampala</p><span id="s">One<wbr>Two</span></div>')
+    for (const sel of ['#p', '#s']) {
+      expect(await style(page, sel, 'text-decoration-line'), sel).toBe('line-through')
+      expect(await style(page, sel, 'text-decoration-thickness'), sel).toBe('14.4px')
+    }
+  })
+
   test('draws text in a div as line bars, but an empty div as a block', async ({ page }) => {
     await mount(
       page,

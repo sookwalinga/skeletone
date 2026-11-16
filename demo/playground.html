@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>skeletone playground</title>
+    <style>
+      body { font: 16px/1.5 system-ui, sans-serif; margin: 0; padding: 24px; background: #f6f7f9; color: #1d2433; }
+      body.dark { background: #12151c; color: #e6e8ee; color-scheme: dark; }
+      .toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 16px; }
+      .toolbar :is(button, a) { display: inline-flex; align-items: center; padding: 6px 12px; border: 1px solid #d5dae3; border-radius: 6px; background: #fff; color: inherit; font: inherit; font-size: 0.85rem; font-weight: 500; text-decoration: none; cursor: pointer; }
+      .toolbar :is(button, a):hover { border-color: #8a93a6; }
+      .toolbar :is(button, a):focus-visible, textarea:focus-visible { outline: 2px solid #4a5878; outline-offset: 2px; }
+      .toolbar .primary { background: #3b4763; border-color: #3b4763; color: #fff; }
+      .dark .toolbar :is(button, a):not(.primary), .dark textarea, .dark iframe { background: #1b2030; border-color: #2a3145; }
+      .dark .toolbar .primary { background: #45537a; border-color: #45537a; }
+      .panes { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; }
+      label { display: block; margin-bottom: 6px; font-size: 0.85rem; font-weight: 500; }
+      textarea, iframe { display: block; box-sizing: border-box; width: 100%; height: 70vh; min-height: 320px; border: 1px solid #d5dae3; border-radius: 12px; background: #fff; color: inherit; }
+      textarea { padding: 12px; font: 13px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; resize: vertical; tab-size: 2; }
+    </style>
+  </head>
+  <body>
+    <div class="toolbar">
+      <button id="toggle" class="primary" type="button">Show loaded content</button>
+      <button id="theme" type="button">Switch to dark mode</button>
+      <button id="motion" type="button">Switch to shimmer</button>
+      <a href="index.html">← Back to the demo</a>
+    </div>
+
+    <div class="panes">
+      <div>
+        <label for="source">Your markup, with its styles</label>
+        <textarea id="source" spellcheck="false"></textarea>
+      </div>
+      <div>
+        <label for="preview">Inside <code>&lt;div data-skeleton inert&gt;</code></label>
+        <!-- The sandbox keeps pasted markup from running scripts. It stays same-origin so the
+             stylesheet also loads when this page is opened from a file. -->
+        <iframe id="preview" title="Preview" sandbox="allow-same-origin"></iframe>
+      </div>
+    </div>
+
+    <template id="sample">
+<style>
+  .card { display: flex; gap: 12px; max-width: 360px; padding: 16px; border: 1px solid #8884; border-radius: 12px; }
+  .avatar { flex: none; width: 48px; height: 48px; border-radius: 50%; }
+  .name { margin: 0; font-size: 1.1rem; }
+  .role { margin: 0 0 8px; font-size: 0.85rem; }
+  .follow { padding: 6px 12px; border: 0; border-radius: 8px; }
+</style>
+
+<article class="card">
+  <img class="avatar" alt="" />
+  <div>
+    <h3 class="name">Amina Nakato</h3>
+    <p class="role">Product designer · Kampala</p>
+    <p data-skeleton-lines></p>
+    <button class="follow">Follow</button>
+  </div>
+</article>
+    </template>
+
+    <script>
+      const source = document.getElementById('source')
+      const preview = document.getElementById('preview')
+      const css = new URL('../skeletone.css', location.href).href
+      const state = { loading: true, dark: matchMedia('(prefers-color-scheme: dark)').matches, shimmer: false }
+
+      function draw() {
+        document.body.classList.toggle('dark', state.dark)
+        const page = `font:16px/1.5 system-ui,sans-serif;margin:16px;${state.dark ? 'background:#1b2030;color:#e6e8ee;color-scheme:dark' : 'color:#1d2433'}`
+        const root = state.shimmer ? ':root{--skeleton-animation:skeletone-shimmer}' : ''
+        preview.srcdoc = `<!doctype html><link rel="stylesheet" href="${css}"><style>body{${page}}${root}</style>
+          <div${state.loading ? ' data-skeleton inert' : ''}>${source.value}</div>`
+        document.getElementById('toggle').textContent = state.loading ? 'Show loaded content' : 'Show skeleton'
+        document.getElementById('theme').textContent = state.dark ? 'Switch to light mode' : 'Switch to dark mode'
+        document.getElementById('motion').textContent = state.shimmer ? 'Switch to pulse' : 'Switch to shimmer'
+      }
+      for (const [id, key] of [['toggle', 'loading'], ['theme', 'dark'], ['motion', 'shimmer']]) {
+        document.getElementById(id).onclick = () => { state[key] = !state[key]; draw() }
+      }
+      source.value = document.getElementById('sample').innerHTML.trim()
+      source.oninput = draw
+      draw()
+    </script>
+  </body>
+</html>

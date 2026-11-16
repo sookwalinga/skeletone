@@ -18,7 +18,8 @@ for you.
 </div>
 ```
 
-About 1.6 KB gzipped. [Try the demo.](https://sookwalinga.github.io/skeletone/demo/)
+About 1.6 KB gzipped. [Try the demo](https://sookwalinga.github.io/skeletone/demo/), or
+[paste in your own markup](https://sookwalinga.github.io/skeletone/demo/playground.html).
 
 ![Three cards drawn as skeletons while loading, and the same cards once loaded](demo/preview.png)
 
@@ -46,6 +47,7 @@ build step, where skeletone uses a stylesheet:
 | [phantom-ui]             | A web component measures each element and overlays blocks | Client-side JavaScript, extra CSS to avoid a flash when server rendering |
 | [boneyard-js]            | A CLI snapshots the page in a headless browser        | A build step, and snapshots to keep fresh  |
 | [shimmer-from-structure] | A wrapper renders the component with mock props and measures it | Client-side JavaScript, an adapter per framework |
+| [skeleton-ui-loader], [auto-skeleton-react] | A React component measures the rendered DOM | Client-side JavaScript, React only |
 | [Skeleton Mammoth]       | CSS classes                                           | A class on every element, wrappers around images and inputs |
 
 Measuring in JavaScript handles cases a stylesheet can't, such as shadow DOM (see
@@ -55,6 +57,8 @@ and a skeleton in the server-rendered HTML.
 [phantom-ui]: https://github.com/Aejkatappaja/phantom-ui
 [boneyard-js]: https://github.com/0xGF/boneyard
 [shimmer-from-structure]: https://github.com/darula-hpp/shimmer-from-structure
+[skeleton-ui-loader]: https://github.com/pavansharan007/skeleton-ui-loader
+[auto-skeleton-react]: https://github.com/ShanukJ/auto-skeleton
 [Skeleton Mammoth]: https://github.com/WOLFRIEND/skeleton-mammoth
 
 ## Install
@@ -104,8 +108,7 @@ onto any element, or onto a component that passes props to its element, such as 
 
 `<Skeleton>` renders an element in skeleton mode, for when there's no element to spread
 onto. `count` repeats the children while loading, so a list needs one placeholder record
-instead of an array of them (see Placeholder records), and `label` tells screen readers
-what's loading. Each copy gets its own key, so the record needs no `id`:
+instead of an array of them, and `label` tells screen readers what's loading:
 
 ```tsx
 const LOADING_OPPORTUNITY = {} as Opportunity
@@ -117,48 +120,8 @@ const LOADING_OPPORTUNITY = {} as Opportunity
 </Skeleton>
 ```
 
-renders, while loading:
-
-```html
-<span role="status" class="skeletone-status">Loading opportunities</span>
-<div data-skeleton inert>…6 cards…</div>
-```
-
-| Prop      | Default | What it does                                                               |
-| --------- | ------- | -------------------------------------------------------------------------- |
-| `loading` | `true`  | Skeleton mode on or off                                                    |
-| `count`   | `1`     | Renders the children this many times while loading                         |
-| `label`   | none    | While loading, a hidden `role="status"` message just before the element    |
-| `as`      | `'div'` | The element or component to render                                         |
-| `labelAs` | `as`    | What wraps the message: `'span'`, `'tbody'`, `'tr'` or `'li'`              |
-
-Keep `count` to what fits on screen (10–20 rows): every bar is animated, so a skeleton over
-thousands of rows is slow to start. While a table reloads, show the skeleton in place of the
-old rows, not on top of them.
-
-Other props, `ref` included, pass through to the element. With `as`, a table or list can repeat its rows,
-and a component such as MUI's `TableBody` or `Grid` takes the attributes without an extra
-wrapper:
-
-```jsx
-<table>
-  <thead>…</thead>
-  <Skeleton as="tbody" count={5}>
-    <RoleRow role={LOADING_ROLE} />
-  </Skeleton>
-</table>
-
-<Skeleton as={TableBody} count={5} sx={{ minHeight: 200 }}>…</Skeleton>
-```
-
-`label` puts its message beside the element, wrapped so the markup stays valid: a table
-body next to a `tbody`, a row next to a `tr`, a list item next to an `li`, otherwise a
-`<span>`. The wrapper takes no space. When `as` is a component, `<Skeleton>` can't tell
-what it renders, so name it with `labelAs`:
-
-```jsx
-<Skeleton as={TableBody} count={5} label="Loading roles" labelAs="tbody">…</Skeleton>
-```
+Its props, tables and lists, and components such as MUI's `TableBody` are covered in
+[the React guide](docs/react.md).
 
 **Vue**
 
@@ -241,73 +204,25 @@ element itself renders without data:
 The rows are drawn as lines of text, which suits a vertical list. A horizontal list of chips
 looks better with a placeholder record (see the next section).
 
-### Detail pages
+### Sections that need data to render
 
-On a detail page, the structure comes from the data. skeletone can only draw elements that
-are in the page, so keep wrappers outside your conditions where you can:
-
-```jsx
-<ul className="tags">{data.tags?.map(…)}</ul>   // drawn while loading
-{data.tags && <ul className="tags">…</ul>}      // not in the page, so nothing to draw
-```
-
-When a section can't render without data, render the page with a placeholder record
-instead. The text is never shown, only its shape, so placeholder text becomes bars that
-wrap like real text. `text(length)` from `skeletone/text` makes it: words of x's, about
-`length` characters long. It works with any framework.
+skeletone can only draw elements that are in the page. Keep wrappers outside your
+conditions where you can, and when a section can't render without data, render it with a
+placeholder record: the text is never shown, only its shape. `text(length)` from
+`skeletone/text` makes placeholder words that wrap like real text, in any framework:
 
 ```jsx
 import { text } from 'skeletone/text'
 
-const placeholder = {
-  title: text(40),  // about one line
-  about: text(320), // wraps over several lines
-  tags: [text(5), text(5), text(5)],
-}
+const placeholder = { title: text(40), about: text(320), tags: [text(5), text(5), text(5)] }
 
 <main {...skeleton(isLoading)}>
   <Opportunity opportunity={data ?? placeholder} />
 </main>
 ```
 
-With React Query, pass the same object as `placeholderData`.
-
-The record only has to say how many items there are. It doesn't need text. Empty values get
-the default bars, and you set lengths where the defaults are wrong:
-
-```jsx
-const placeholder = { title: '', about: '', tags: ['', '', ''] }
-
-<h1 className="title"></h1>              {/* .title { --skeleton-width: 70% } */}
-<p data-skeleton-lines className="about"></p> {/* .about { --skeleton-lines: 5 } */}
-```
-
-Use placeholder text for zero configuration, or empty values to control lengths exactly.
-
-### Placeholder records
-
-A placeholder record holds only what the component can't render without. A field it only
-displays can be left out: it renders empty and gets the default bar. Keep the fields it
-reads into, such as an array it maps, an object whose fields it reads or a date it formats,
-because `undefined` throws there. In TypeScript, cast the record to the full type. Types
-don't exist at runtime, so skeletone can't fill the record in from them. Type an empty array
-as well, because a bare `[]` is `never[]` and TypeScript rejects the cast:
-
-```ts
-// RoleRow maps permissions
-const LOADING_ROLE = { permissions: [] as RBACRole['permissions'] } as RBACRole
-
-<Skeleton as="tbody" count={5} loading={!roles}>
-  {roles
-    ? roles.map((r) => <RoleRow key={r.id} role={r} />)
-    : <RoleRow role={LOADING_ROLE} />}
-</Skeleton>
-```
-
-The cast tells TypeScript the record is complete, so a field you left out that the
-component reads into fails when it renders, not when it compiles. Empty table cells get
-full-width bars inside their padding; set `--skeleton-width` on a column's class where a
-shorter bar suits it.
+[The placeholder guide](docs/placeholders.md) covers empty values, TypeScript casts and
+what a record has to hold.
 
 ### Keeping a section as it is
 
@@ -439,10 +354,12 @@ each browser has. An older version inside the baseline shows the arrow or icon o
 
 - **Elements that render only when data exists** (`{data.tags && <Tags />}`) aren't in the
   page while loading, so they get no bars. Move the wrapper outside the condition, or render
-  with a placeholder record (see Detail pages). Adding elements takes JavaScript, so a
+  with a placeholder record (see Sections that need data to render). Adding elements takes JavaScript, so a
   stylesheet can't create them.
 - **Text mixed with child elements** (`<p>By <a>Sam</a></p>`) is hidden, but only the child
-  gets a bar.
+  gets a bar. A stylesheet can't select the loose text, and a bar across the whole
+  paragraph would be drawn twice over the child. Wrap the loose text in a `<span>`. Line
+  breaks are fine: `<p>12 Main Street<br>Kampala</p>` gets a bar per line.
 - **Whitespace-only elements** (`<p> </p>`, `<div class="avatar"> </div>`) aren't
   `:empty`, so they count as text and get no bar. Render them truly empty, or put
   `data-skeleton-block` on a shape.

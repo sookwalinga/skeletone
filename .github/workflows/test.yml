@@ -4,6 +4,8 @@ on:
   push:
     branches: [main]
   pull_request:
+  # The release workflow runs these jobs before it publishes.
+  workflow_call:
 
 jobs:
   test:
@@ -27,3 +29,17 @@ jobs:
         with:
           name: test-results
           path: test-results/
+
+  # Safari's engine as it runs on macOS. WebKit's Linux build draws some controls its own
+  # way, so a select's arrow can only be checked here.
+  safari:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+      - run: corepack enable
+      - run: yarn install --frozen-lockfile
+      - run: yarn playwright install webkit
+      - run: yarn test --project=webkit

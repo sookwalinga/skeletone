@@ -10,13 +10,15 @@
       body.dark { background: #12151c; color: #e6e8ee; color-scheme: dark; }
       .dark .card { background: #1b2030; border-color: #2a3145; }
       .toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 16px; }
-      .toolbar button { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border: 1px solid #d5dae3; border-radius: 6px; background: #fff; color: inherit; font: inherit; font-size: 0.85rem; font-weight: 500; cursor: pointer; transition: background-color 0.15s, border-color 0.15s; }
-      .toolbar button:hover { border-color: #8a93a6; }
-      .toolbar button:focus-visible { outline: 2px solid #4a5878; outline-offset: 2px; }
+      .toolbar :is(button, a) { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border: 1px solid #d5dae3; border-radius: 6px; background: #fff; color: inherit; font: inherit; font-size: 0.85rem; font-weight: 500; text-decoration: none; cursor: pointer; transition: background-color 0.15s, border-color 0.15s; }
+      .toolbar :is(button, a):hover { border-color: #8a93a6; }
+      .toolbar :is(button, a):focus-visible { outline: 2px solid #4a5878; outline-offset: 2px; }
       .toolbar .primary { background: #3b4763; border-color: #3b4763; color: #fff; }
       .toolbar .primary:hover { background: #2f3950; border-color: #2f3950; }
-      .dark .toolbar button:not(.primary) { background: #1b2030; border-color: #2a3145; }
-      .dark .toolbar button:not(.primary):hover { border-color: #5a6684; }
+      .dark .toolbar :is(button, a):not(.primary) { background: #1b2030; border-color: #2a3145; }
+      .dark .toolbar :is(button, a):not(.primary):hover { border-color: #5a6684; }
+      /* Bars pulse by default. This switches every skeleton on the page to the shimmer. */
+      .shimmer { --skeleton-animation: skeletone-shimmer; }
       .dark .toolbar .primary { background: #45537a; border-color: #45537a; }
       .dark .toolbar .primary:hover { background: #505f88; border-color: #505f88; }
       .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
@@ -49,6 +51,8 @@
     <div class="toolbar">
       <button id="toggle" class="primary" type="button">Show loaded content</button>
       <button id="theme" type="button">Switch to dark mode</button>
+      <button id="motion" type="button">Switch to shimmer</button>
+      <a href="playground.html">Try your own markup</a>
     </div>
 
     <!-- The same template renders the skeleton (no data) and the loaded card. The status
@@ -155,6 +159,10 @@
       }
       setDark(matchMedia('(prefers-color-scheme: dark)').matches)
       theme.onclick = () => setDark(!document.body.classList.contains('dark'))
+      const motion = document.getElementById('motion')
+      motion.onclick = () => {
+        motion.textContent = document.body.classList.toggle('shimmer') ? 'Switch to pulse' : 'Switch to shimmer'
+      }
     </script>
   </body>
 </html>

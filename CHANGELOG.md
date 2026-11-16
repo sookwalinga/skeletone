@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- Text with line breaks, such as `<p>12 Main Street<br>Kampala</p>`, gets a bar per line. It
+  was hidden with no bars.
+
 ## 0.2.0
 
 - `--skeleton-color` set on a section inside a skeleton now tints that section's bars, so a

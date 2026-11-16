@@ -111,9 +111,9 @@ input[type='file']:is([data-skeleton]:not([data-skeleton='false']), [data-skelet
 }
 
 /* Text that is present (placeholder data) gets a bar per line, as long as the
-   line: a thick strike-through. */
+   line: a thick strike-through. Line breaks inside it don't make it a container. */
 :where(h1, h2, h3, h4, h5, h6, p, li, dt, dd, td, th, figcaption, blockquote, caption, legend,
-    summary, div, span, a, b, i, em, strong, small, time, code, cite, q, abbr, mark, label):is([data-skeleton]:not([data-skeleton='false']), [data-skeleton]:not([data-skeleton='false']) *):not(:has(*), :empty):not([data-skeleton-ignore], [data-skeleton-ignore] *) {
+    summary, div, span, a, b, i, em, strong, small, time, code, cite, q, abbr, mark, label):is([data-skeleton]:not([data-skeleton='false']), [data-skeleton]:not([data-skeleton='false']) *):not(:has(:not(br, wbr)), :empty):not([data-skeleton-ignore], [data-skeleton-ignore] *) {
   background: none;
   text-decoration-line: line-through;
   text-decoration-color: var(--_c);
