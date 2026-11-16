@@ -18,7 +18,7 @@ jobs:
       - run: corepack enable
       - run: yarn install --frozen-lockfile
       - run: yarn playwright test test/visual.spec.ts --update-snapshots=changed
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: screenshots
           path: test/visual.spec.ts-snapshots/
