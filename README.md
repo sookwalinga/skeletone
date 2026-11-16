@@ -127,6 +127,10 @@ renders, while loading:
 | `as`      | `'div'` | The element or component to render                                         |
 | `labelAs` | `as`    | What wraps the message: `'span'`, `'tbody'`, `'tr'` or `'li'`              |
 
+Keep `count` to what fits on screen (10–20 rows): every bar is animated, so a skeleton over
+thousands of rows is slow to start. While a table reloads, show the skeleton in place of the
+old rows, not on top of them.
+
 Other props, `ref` included, pass through to the element. With `as`, a table or list can repeat its rows,
 and a component such as MUI's `TableBody` or `Grid` takes the attributes without an extra
 wrapper:
