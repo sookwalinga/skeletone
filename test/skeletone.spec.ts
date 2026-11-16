@@ -415,7 +415,7 @@ test.describe('skeletone', () => {
     expect(await widths('skel')).toEqual(await widths('real'))
   })
 
-  test("hides a control's own buttons and icons, so it is drawn as a plain bar", async ({ page }) => {
+  test("hides a control's own buttons and icons, so it is drawn as a plain bar", async ({ page, browserName }) => {
     await page.emulateMedia({ reducedMotion: 'reduce' })
     const controls = ['<input type="file">', '<input type="date" value="2026-01-01">', '<input type="time" value="10:00">',
       '<input type="datetime-local" value="2026-01-01T10:00">', '<input type="search" value="abc">', '<input type="number" value="3">', '<select><option>abc</option></select>']
@@ -428,7 +428,11 @@ test.describe('skeletone', () => {
     for (const type of ['file', 'date', 'time', 'datetime-local', 'search', 'number']) {
       expect.soft((await page.locator(`[type=${type}]`).screenshot()).equals(plain), type).toBe(true)
     }
-    expect.soft((await page.locator('select').screenshot()).equals(plain), 'select').toBe(true)
+    // WebKit's Linux port draws a select in the system theme, whatever its styles say. Safari
+    // doesn't, so the select is checked in WebKit on macOS only.
+    if (browserName !== 'webkit' || process.platform === 'darwin') {
+      expect.soft((await page.locator('select').screenshot()).equals(plain), 'select').toBe(true)
+    }
   })
 
   test('keeps text hidden and bars drawn in forced-colors (high contrast) mode', async ({ page }) => {
