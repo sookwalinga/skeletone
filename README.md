@@ -341,6 +341,7 @@ a section inside it to change just that section.
 | `--skeleton-inline-width`  | `4em`                                    | Width of empty inline text         |
 | `--skeleton-last-line`     | `60%`                                    | Width of a paragraph's last line   |
 | `--skeleton-lines`         | `3`                                      | Line count of a `data-skeleton-lines` element or an empty list |
+| `--skeleton-animation`     | `skeletone-pulse`                        | Bar animation: `skeletone-shimmer` sweeps a band across the bars instead |
 
 Bars take their colour from the container's text colour, so dark mode works without any
 configuration. A dark or inverted section inside a light skeleton (or the other way round)
@@ -350,6 +351,15 @@ needs its own colour, since its bars would match its background:
 .dark-panel { --skeleton-color: rgb(255 255 255 / 0.13); }
 ```
 
+Bars pulse by default. For a shimmer, set the animation once for the whole page:
+
+```css
+:root { --skeleton-animation: skeletone-shimmer; }
+```
+
+The pulse is animated by the browser's compositor. The shimmer is a moving mask, which
+repaints every bar on every frame, so keep the pulse on pages with hundreds of bars.
+
 ## How it works
 
 The whole library is one stylesheet. Inside `[data-skeleton]`:
@@ -357,7 +367,7 @@ The whole library is one stylesheet. Inside `[data-skeleton]`:
 1. Text is hidden with `-webkit-text-fill-color: transparent`, so it keeps its layout.
 2. Leaf elements, meaning elements with no element children (`:not(:has(*))`), plus whole
    SVG icons, selects, videos and `data-skeleton-block` elements, get a background in the
-   bar colour and a gentle pulse. Checkboxes, radios, sliders, colour pickers, progress bars
+   bar colour and a gentle pulse (or a shimmer). Checkboxes, radios, sliders, colour pickers, progress bars
    and meters draw their own look over any background, so they're greyed out instead, at
    their own size. A control's own parts are hidden: a file input's button and file name, a
    date or time picker's icon, a search field's clear button and a number field's arrows.
@@ -401,7 +411,7 @@ The whole library is one stylesheet. Inside `[data-skeleton]`:
   </td></tr></tbody>
   <tbody data-skeleton inert>…</tbody>
   ```
-- The pulse stops when the user asks for reduced motion.
+- The pulse and the shimmer stop when the user asks for reduced motion.
 - In forced-colors mode (Windows high contrast), the skeleton keeps its own colours, so its
   text stays hidden, and draws its bars in the system's `GrayText`. `--skeleton-color`
   doesn't apply there.
@@ -436,6 +446,10 @@ Any browser with `:has()`, the `lh` unit and `color-mix()`: Chrome / Edge 111+, 
 - **Dark or inverted sections** get bars in the container's text colour, not their own, so
   on a dark panel in a light skeleton they don't show. Set `--skeleton-color` on the
   section (see Customise).
+- **The shimmer sweeps each bar on its own**, starting from the bar's left edge, so bars
+  that start at different points aren't in step. A strike-through bar takes only one
+  colour, so the band is a mask, and unlike a background a mask can't be fixed to the
+  viewport to line the bars up. It also clips anything drawn outside a bar's box.
 - **Shadow DOM**: a stylesheet doesn't reach inside a web component's shadow root, so its
   contents stay as they are. Add skeletone.css to the shadow root and set `data-skeleton` on
   an element inside it.

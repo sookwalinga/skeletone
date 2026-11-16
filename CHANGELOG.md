@@ -4,6 +4,8 @@
 
 - `--skeleton-color` set on a section inside a skeleton now tints that section's bars, so a
   dark or inverted panel can show its skeleton.
+- `--skeleton-animation: skeletone-shimmer` sweeps a shimmer across the bars instead of the
+  pulse. The pulse stays the default.
 
 ## Unreleased
 

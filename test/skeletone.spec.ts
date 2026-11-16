@@ -310,6 +310,29 @@ test.describe('skeletone', () => {
     expect(await style(page, '#t', 'animation-name')).toBe('none')
   })
 
+  test('sweeps a shimmer mask over every kind of bar with --skeleton-animation', async ({ page }) => {
+    await mount(
+      page,
+      `<div data-skeleton class="feed"><h3 id="t"></h3><p id="p">Placeholder</p><div id="a" class="avatar"></div></div>
+       <div data-skeleton><p id="plain">Placeholder</p></div>`,
+      '.feed{--skeleton-animation: skeletone-shimmer}.avatar{width:40px;height:40px}',
+    )
+    const mask = (sel: string) =>
+      page.locator(sel).evaluate((el) => {
+        for (const a of el.getAnimations()) {
+          a.pause()
+          a.currentTime = 0
+        }
+        return getComputedStyle(el).webkitMaskImage
+      })
+    for (const sel of ['#t', '#p', '#a']) {
+      expect(await style(page, sel, 'animation-name')).toBe('skeletone-shimmer')
+      expect(await mask(sel)).toContain('linear-gradient')
+    }
+    expect(await style(page, '#plain', 'animation-name')).toBe('skeletone-pulse')
+    expect(await mask('#plain')).toBe('none')
+  })
+
   test('draws a select as a bar, though its options make it more than a leaf', async ({ page }) => {
     await mount(
       page,

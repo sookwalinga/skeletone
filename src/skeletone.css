@@ -50,11 +50,12 @@
   text-decoration-color: transparent;
   text-shadow: none;
 }
-/* Bars pulse from the first frame, so a loader replaced by another doesn't blink. */
+/* Bars pulse from the first frame, so a loader replaced by another doesn't blink.
+   --skeleton-animation: skeletone-shimmer sweeps a band across them instead. */
 @media (prefers-reduced-motion: no-preference) {
   :is(:not(:has(*)), svg, select, video):not(svg *, br, hr, wbr, script, style, template):is([data-skeleton]:not([data-skeleton='false']), [data-skeleton]:not([data-skeleton='false']) *):not([data-skeleton-ignore], [data-skeleton-ignore] *),
   [data-skeleton-block]:is([data-skeleton]:not([data-skeleton='false']), [data-skeleton]:not([data-skeleton='false']) *):not([data-skeleton-ignore], [data-skeleton-ignore] *) {
-    animation: skeletone-pulse 1.5s ease-in-out infinite;
+    animation: var(--skeleton-animation, skeletone-pulse) 1.5s ease-in-out infinite;
   }
 }
 /* Zero specificity, so a component's own radius (a round avatar) and
@@ -180,4 +181,13 @@ input[type='file']:is([data-skeleton]:not([data-skeleton='false']), [data-skelet
 
 @keyframes skeletone-pulse {
   50% { opacity: 0.55; }
+}
+/* A strike-through bar takes one colour, so the band is a mask that dims the whole bar,
+   whatever draws it. The tile is 100vw wide, so every bar sweeps at the same speed. */
+@keyframes skeletone-shimmer {
+  0%, to {
+    animation-timing-function: linear;
+    -webkit-mask: linear-gradient(90deg, #000 30%, #0008 50%, #000 70%) 0 0 / 100vw 100%;
+  }
+  0% { -webkit-mask-position: -100vw 0; }
 }
