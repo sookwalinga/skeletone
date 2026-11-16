@@ -67,7 +67,12 @@ npm install skeletone
 import 'skeletone/skeletone.css' // bundlers that handle CSS imports
 ```
 
-Or use a `<link>` to `node_modules/skeletone/skeletone.css`, or to a CDN copy.
+Or use a `<link>` to `node_modules/skeletone/skeletone.css`, or skip the install and link to
+a CDN copy:
+
+```html
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/skeletone@0.2/skeletone.css" />
+```
 
 The framework helpers are optional, and each is a separate import. A React app bundles only
 `skeletone/react`, never the Vue or Svelte code. Installing skeletone doesn't install any
