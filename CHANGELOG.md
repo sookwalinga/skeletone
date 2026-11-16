@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- A `<div>` that holds only text gets a bar per line, as long as the text, instead of a
+  block across its whole width. An empty `<div>` is still drawn as a block, but a
+  whitespace-only one now counts as text and gets no bar.
+
 ## 0.1.0
 
 First release.

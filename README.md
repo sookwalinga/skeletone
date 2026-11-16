@@ -359,8 +359,9 @@ The whole library is one stylesheet. Inside `[data-skeleton]`:
    loader replaced by another one doesn't blink. The `[data-skeleton]` element counts too: one with no element children, such as
    `<p data-skeleton>12 users</p>`, is drawn like a leaf.
 3. Text elements that hold text get a strike-through 0.6 of a line thick instead, so each
-   wrapped line gets its own bar. Text blocks such as paragraphs, list items and table
-   cells keep their borders, so table rows keep their lines.
+   wrapped line gets its own bar. A `<div>` that holds only text counts as a text element,
+   and an empty one stays a block. Text blocks such as paragraphs, divs, list items and
+   table cells keep their borders, so table rows keep their lines.
 4. Empty elements get a `1lh` minimum height, and empty text elements a bar drawn as a
    gradient inside their padding, so they look like a line of text rather than a solid
    block. An element's own `min-height` wins, so a 44px button stays 44px. Icons, images,
@@ -412,8 +413,9 @@ Any browser with `:has()`, the `lh` unit and `color-mix()`: Chrome / Edge 111+, 
   stylesheet can't create them.
 - **Text mixed with child elements** (`<p>By <a>Sam</a></p>`) is hidden, but only the child
   gets a bar.
-- **Whitespace-only elements** (`<p> </p>`) aren't `:empty`, so they get no bar. Render
-  them truly empty.
+- **Whitespace-only elements** (`<p> </p>`, `<div class="avatar"> </div>`) aren't
+  `:empty`, so they count as text and get no bar. Render them truly empty, or put
+  `data-skeleton-block` on a shape.
 - **Empty decorative elements** (a 1px divider `<div>`, an icon-font `<i>`) are leaves too,
   so they become bars at least a line tall. Mark them `data-skeleton-ignore`.
 - **Real images and video posters** inside a skeleton are painted over. That's intended, but

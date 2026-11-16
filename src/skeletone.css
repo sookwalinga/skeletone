@@ -34,7 +34,7 @@
    elements, such as a single line of text, is drawn too. Text blocks keep their borders
    (row lines). */
 :is(:not(:has(*)), svg, select, video):not(svg *, br, hr, wbr, script, style, template):not(:where(h1, h2, h3, h4, h5, h6, p, li, dt, dd, td, th, figcaption, blockquote, caption, legend,
-    summary)):is([data-skeleton]:not([data-skeleton='false']), [data-skeleton]:not([data-skeleton='false']) *):not([data-skeleton-ignore], [data-skeleton-ignore] *) {
+    summary, div:not(:empty))):is([data-skeleton]:not([data-skeleton='false']), [data-skeleton]:not([data-skeleton='false']) *):not([data-skeleton-ignore], [data-skeleton-ignore] *) {
   background: var(--_c);
   border-color: transparent;
   box-shadow: none;
@@ -92,7 +92,7 @@ input[type='file']:is([data-skeleton]:not([data-skeleton='false']), [data-skelet
 /* Text that is present (placeholder data) gets a bar per line, as long as the
    line: a thick strike-through. */
 :where(h1, h2, h3, h4, h5, h6, p, li, dt, dd, td, th, figcaption, blockquote, caption, legend,
-    summary, span, a, b, i, em, strong, small, time, code, cite, q, abbr, mark, label):is([data-skeleton]:not([data-skeleton='false']), [data-skeleton]:not([data-skeleton='false']) *):not(:has(*), :empty):not([data-skeleton-ignore], [data-skeleton-ignore] *) {
+    summary, div, span, a, b, i, em, strong, small, time, code, cite, q, abbr, mark, label):is([data-skeleton]:not([data-skeleton='false']), [data-skeleton]:not([data-skeleton='false']) *):not(:has(*), :empty):not([data-skeleton-ignore], [data-skeleton-ignore] *) {
   background: none;
   text-decoration-line: line-through;
   text-decoration-color: var(--_c);

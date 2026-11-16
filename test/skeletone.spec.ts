@@ -79,6 +79,22 @@ test.describe('skeletone', () => {
     expect(await style(page, '#p', 'text-decoration-thickness')).toBe('14.4px')
   })
 
+  test('draws text in a div as line bars, but an empty div as a block', async ({ page }) => {
+    await mount(
+      page,
+      `<div data-skeleton class="list"><div id="t" class="name">Plain text</div><div id="a" class="avatar"></div>
+         <div id="b" class="chip" data-skeleton-block>New</div></div>
+       <div id="r" data-skeleton class="name">Root text</div>`,
+      '.list{width:600px}.name{background:blue}.avatar{width:40px;height:40px;border-radius:50%}.chip{display:inline-block}',
+    )
+    for (const id of ['#t', '#r']) {
+      expect(await style(page, id, 'background-color')).toBe('rgba(0, 0, 0, 0)')
+      expect(await style(page, id, 'text-decoration-line')).toBe('line-through')
+    }
+    for (const id of ['#a', '#b']) expect(await style(page, id, 'background-color')).not.toBe('rgba(0, 0, 0, 0)')
+    expect(await box(page, '#a')).toMatchObject({ width: 40, height: 40 })
+  })
+
   test("keeps a text block's own border, such as a table row's, but not a badge's", async ({ page }) => {
     await mount(
       page,
