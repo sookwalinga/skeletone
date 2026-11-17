@@ -1,8 +1,9 @@
 name: release
 
-# Pushing a v* tag tests the tagged commit, then publishes it to npm. Nothing is published
-# from a laptop, so a release can't go out with a failing test. npm trusts this workflow
-# (the package's Trusted Publisher setting), so no token is stored here.
+# Pushing a v* tag tests the tagged commit, then stages it on npm. Nothing is published from
+# a laptop, so a release can't go out with a failing test. npm trusts this workflow (the
+# package's Trusted Publisher setting), so no token is stored here. The workflow can only
+# stage: the version goes live when a maintainer approves it on npmjs.com with 2FA.
 on:
   push:
     tags: ['v*']
@@ -27,4 +28,4 @@ jobs:
       - run: yarn install --frozen-lockfile
       - name: Check the tag matches package.json
         run: test "v$(node -p "require('./package.json').version")" = "$GITHUB_REF_NAME"
-      - run: npm publish --provenance --access public
+      - run: npm stage publish . --provenance --access public
