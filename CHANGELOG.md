@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.2.1
 
 - Text with line breaks, such as `<p>12 Main Street<br>Kampala</p>`, gets a bar per line. It
   was hidden with no bars.
