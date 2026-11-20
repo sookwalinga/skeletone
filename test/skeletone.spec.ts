@@ -332,8 +332,60 @@ test.describe('skeletone', () => {
     const bar = await style(page, '#i', 'background-color')
     expect(bar).not.toBe('rgba(0, 0, 0, 0)')
     expect(await style(page, '#l', '-webkit-text-fill-color')).toBe('rgba(0, 0, 0, 0)')
-    expect(await style(page, '#l', 'text-decoration-line')).toBe('line-through')
-    expect(await style(page, '#l', 'text-decoration-color')).toBe(bar)
+    // The button draws its label's bar, so the label doesn't draw a second one over it.
+    expect(await style(page, '#b', 'text-decoration-line')).toBe('line-through')
+    expect(await style(page, '#l', 'text-decoration-line')).toBe('none')
+    expect(await style(page, '#b', 'text-decoration-color')).toBe(bar)
+  })
+
+  test("draws a button or link's label as a bar and keeps its own box, greyed", async ({ page }) => {
+    await mount(
+      page,
+      `<div data-skeleton>
+         <button id="text" class="btn">Read more</button>
+         <button id="outlined" class="btn outlined">Edit</button>
+         <button id="filled" class="btn filled">Join</button>
+         <a id="link" class="btn filled" href="#">Apply</a>
+         <button id="icon" class="btn"><span class="start"><svg viewBox="0 0 4 4"></svg></span>Share</button>
+       </div>`,
+      `.btn{display:inline-flex;min-height:44px;padding:6px 8px;border:0;background:transparent;color:rgb(0, 0, 255)}
+       .outlined{border:1px solid rgb(0, 0, 255)}.filled{background:rgb(0, 102, 204)}svg{width:16px;height:16px}`,
+    )
+    for (const id of ['#text', '#outlined', '#filled', '#link', '#icon']) {
+      expect(await style(page, id, 'text-decoration-line'), id).toBe('line-through')
+      expect(await style(page, id, 'filter'), id).toBe('grayscale(1) opacity(0.4)')
+    }
+    expect(await style(page, '#text', 'background-color')).toBe('rgba(0, 0, 0, 0)')
+    expect((await box(page, '#text')).height).toBe(44)
+    expect(await style(page, '#outlined', 'border-top-color')).toBe('rgb(0, 0, 255)')
+    for (const id of ['#filled', '#link']) expect(await style(page, id, 'background-color'), id).toBe('rgb(0, 102, 204)')
+    // The fade would lighten the label, so its bar is drawn stronger to come out at 13%.
+    expect(await style(page, '#text', 'text-decoration-color')).toBe('color(srgb 0 0 0 / 0.325)')
+  })
+
+  test("draws a button's label as a plain text bar on screen", async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' })
+    await mount(
+      page,
+      `<div class="cell"><span class="btn ref">Read more</span></div>
+       <div id="skel" class="cell" data-skeleton><button class="btn">Read more</button></div>`,
+      `.cell{width:120px;height:56px}.btn{display:inline-flex;min-height:44px;padding:6px 8px;border:0;margin:0;
+         background:transparent;font:16px/1.5 sans-serif;color:rgb(0, 0, 0)}
+       .ref{-webkit-text-fill-color:transparent;text-decoration:line-through color-mix(in srgb, currentColor 13%, transparent) 0.6lh}`,
+    )
+    const ref = await page.locator('.cell:has(.ref)').screenshot()
+    expect(await differentPixels(page, await page.locator('#skel').screenshot(), ref)).toBe(0)
+  })
+
+  test("leaves a link that wraps a whole card to its contents", async ({ page }) => {
+    await mount(
+      page,
+      '<div data-skeleton><a id="a" class="card" href="#"><h3 id="h">Title</h3><p id="p">Summary</p></a></div>',
+      '.card{display:block;border:1px solid rgb(0, 0, 255)}',
+    )
+    expect(await style(page, '#a', 'filter')).toBe('none')
+    expect(await style(page, '#a', 'border-top-color')).toBe('rgb(0, 0, 255)')
+    for (const id of ['#h', '#p']) expect(await style(page, id, 'text-decoration-line'), id).toBe('line-through')
   })
 
   test('draws a data-skeleton-block element as one bar, whatever it holds', async ({ page }) => {
@@ -455,7 +507,7 @@ test.describe('skeletone', () => {
       '.gray{color:GrayText;forced-color-adjust:none}.panel{--skeleton-color:rgb(1, 2, 3)}',
     )
     expect(await style(page, '#b', 'forced-color-adjust')).toBe('none')
-    expect(await style(page, '#b', 'background-color')).toBe(await style(page, '#g', 'color'))
+    expect(await style(page, '#b', 'text-decoration-color')).toBe(await style(page, '#g', 'color'))
     expect(await style(page, '#i', 'background-color')).toBe(await style(page, '#g', 'color'))
     expect(await style(page, '#h', 'background-image')).toContain('gradient')
     expect(await style(page, '#a', 'forced-color-adjust')).toBe('auto')

@@ -39,7 +39,7 @@
    elements, such as a single line of text, is drawn too. Text blocks keep their borders
    (row lines). */
 :is(:not(:has(*)), svg, select, video):not(svg *, br, hr, wbr, script, style, template):not(:where(h1, h2, h3, h4, h5, h6, p, li, dt, dd, td, th, figcaption, blockquote, caption, legend,
-    summary, div:not(:empty))):is([data-skeleton]:not([data-skeleton='false']), [data-skeleton]:not([data-skeleton='false']) *):not([data-skeleton-ignore], [data-skeleton-ignore] *) {
+    summary, div:not(:empty), a:not(:empty), button:not(:empty))):is([data-skeleton]:not([data-skeleton='false']), [data-skeleton]:not([data-skeleton='false']) *):not([data-skeleton-ignore], [data-skeleton-ignore] *) {
   background: var(--_c);
   border-color: transparent;
   box-shadow: none;
@@ -113,11 +113,35 @@ input[type='file']:is([data-skeleton]:not([data-skeleton='false']), [data-skelet
 /* Text that is present (placeholder data) gets a bar per line, as long as the
    line: a thick strike-through. Line breaks inside it don't make it a container. */
 :where(h1, h2, h3, h4, h5, h6, p, li, dt, dd, td, th, figcaption, blockquote, caption, legend,
-    summary, div, span, a, b, i, em, strong, small, time, code, cite, q, abbr, mark, label):is([data-skeleton]:not([data-skeleton='false']), [data-skeleton]:not([data-skeleton='false']) *):not(:has(:not(br, wbr)), :empty):not([data-skeleton-ignore], [data-skeleton-ignore] *) {
+    summary, div, span, b, i, em, strong, small, time, code, cite, q, abbr, mark, label):is([data-skeleton]:not([data-skeleton='false']), [data-skeleton]:not([data-skeleton='false']) *):not(:has(:not(br, wbr)), :empty):not([data-skeleton-ignore], [data-skeleton-ignore] *) {
   background: none;
   text-decoration-line: line-through;
   text-decoration-color: var(--_c);
   text-decoration-thickness: 0.6lh;
+}
+/* A button or link that holds only a label (text, an icon) keeps its own box, so a text
+   button stays text and an outlined one keeps its outline, and its label becomes a bar. Text
+   elements inside it don't draw a second bar over that one. A link around block content (a
+   whole card) is left to its contents. */
+:is(a, button):not(:empty, [data-skeleton-block], :has(:not(span, svg, svg *, img, i, b, em, strong, small, br, wbr))):is([data-skeleton]:not([data-skeleton='false']), [data-skeleton]:not([data-skeleton='false']) *):not([data-skeleton-ignore], [data-skeleton-ignore] *) {
+  text-decoration-line: line-through;
+  text-decoration-color: var(--_c);
+  text-decoration-thickness: 0.6lh;
+}
+:is(a, button):not(:empty, [data-skeleton-block], :has(:not(span, svg, svg *, img, i, b, em, strong, small, br, wbr))):is([data-skeleton]:not([data-skeleton='false']), [data-skeleton]:not([data-skeleton='false']) *):not([data-skeleton-ignore], [data-skeleton-ignore] *) * {
+  text-decoration-line: none;
+}
+/* Its own colours are greyed and faded, like the controls above, and its bars are drawn
+   2.5 times stronger to come out as strong as the rest after the fade. */
+@supports (color: rgb(from currentColor r g b)) {
+  @media (forced-colors: none) {
+    :is(a, button):not(:empty, [data-skeleton-block], :has(:not(span, svg, svg *, img, i, b, em, strong, small, br, wbr))):is([data-skeleton]:not([data-skeleton='false']), [data-skeleton]:not([data-skeleton='false']) *):not([data-skeleton-ignore], [data-skeleton-ignore] *) {
+      filter: grayscale(1) opacity(0.4);
+    }
+    :is(:is(a, button):not(:empty, [data-skeleton-block], :has(:not(span, svg, svg *, img, i, b, em, strong, small, br, wbr))), :is(a, button):not(:empty, [data-skeleton-block], :has(:not(span, svg, svg *, img, i, b, em, strong, small, br, wbr))) *):is([data-skeleton]:not([data-skeleton='false']), [data-skeleton]:not([data-skeleton='false']) *):not([data-skeleton-ignore], [data-skeleton-ignore] *) {
+      --_c: rgb(from var(--skeleton-color, color-mix(in srgb, currentColor 13%, transparent)) r g b / calc(alpha * 2.5));
+    }
+  }
 }
 /* Empty text gets a text-height bar instead of a full line-height block, inside the
    padding, where text would be. */

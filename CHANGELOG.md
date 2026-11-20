@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.3.0
+
+- Buttons and links that hold only a label (text, an icon) keep their own background and
+  border, greyed and faded, and their label gets a bar. A text button such as "Read more"
+  was drawn as a solid block the size of the button, a button's label beside an icon got no
+  bar, a link styled as a button lost its shape, and tabs merged into one strip. A link
+  around block content, such as a whole card, is drawn as before.
+
 ## 0.2.1
 
 - Text with line breaks, such as `<p>12 Main Street<br>Kampala</p>`, gets a bar per line. It

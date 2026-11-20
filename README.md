@@ -29,7 +29,8 @@ Most skeleton loaders are a second, hand-written copy of each screen. When the r
 component changes, the copy goes stale. skeletone has no copy to keep in step. While data
 loads, your component renders as usual with empty values. The CSS then:
 
-- turns each innermost element (images, icons, inputs, buttons) into a grey block,
+- turns each innermost element (images, icons, inputs) into a grey block,
+- keeps each button's and link's own outline, greyed, with a bar for its label,
 - draws text as one bar per line, as long as the line,
 - gives empty text a text-height bar so it doesn't collapse,
 - leaves every container, card, border, gap and grid untouched.
@@ -244,7 +245,8 @@ inert element is inert, ignored sections included.
 A coloured element that holds other elements keeps its colour, because only leaves become
 bars: an avatar showing a fallback icon stays blue, a chip stays tinted around its label
 bar. `data-skeleton-block` draws the element as one bar in the skeleton colour and hides
-what's inside. It keeps its own size and corners, and does nothing outside skeleton mode:
+what's inside. It keeps its own size and corners, and does nothing outside skeleton mode. On
+a button it replaces the greyed button and label bar with a plain block:
 
 ```jsx
 <Avatar data-skeleton-block src={user.photo} />
@@ -296,6 +298,11 @@ The whole library is one stylesheet. Inside `[data-skeleton]`:
    their own size. A control's own parts are hidden: a file input's button and file name, a
    date or time picker's icon, a search field's clear button, a number field's arrows and
    a select's arrow.
+   Buttons and links that hold only a label (text, an icon) keep their own background and
+   border, greyed and faded the same way, and their label gets a bar. So a text button draws
+   as text, an outlined one keeps its outline, and a link styled as a button looks like the
+   button next to it. A link around block content, such as a whole card, is left to its
+   contents.
    The bars show from the first frame, with the outlines around them, so a
    loader replaced by another one doesn't blink. The `[data-skeleton]` element counts too: one with no element children, such as
    `<p data-skeleton>12 users</p>`, is drawn like a leaf.
@@ -349,6 +356,8 @@ Any browser with `:has()`, the `lh` unit and `color-mix()`: Chrome / Edge 111+, 
 Hiding a select's arrow, and a date or time picker's icon in Firefox, also needs relative
 colours from `currentColor` (`rgb(from currentColor r g b)`), which the current version of
 each browser has. An older version inside the baseline shows the arrow or icon over the bar.
+Greying a button's or link's own colours needs them too. Without them a button keeps its
+colours, with the label bar drawn over them.
 
 ## Limitations
 
@@ -356,6 +365,9 @@ each browser has. An older version inside the baseline shows the arrow or icon o
   page while loading, so they get no bars. Move the wrapper outside the condition, or render
   with a placeholder record (see Sections that need data to render). Adding elements takes JavaScript, so a
   stylesheet can't create them.
+- **A button label in an inline-block element** (`<button><span style="display:inline-block">Save</span></button>`)
+  gets no bar, because the button's bar doesn't reach inside inline blocks. Leave the label
+  inline, or a flex item, which most component libraries do.
 - **Text mixed with child elements** (`<p>By <a>Sam</a></p>`) is hidden, but only the child
   gets a bar. A stylesheet can't select the loose text, and a bar across the whole
   paragraph would be drawn twice over the child. Wrap the loose text in a `<span>`. Line
